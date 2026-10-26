@@ -9,6 +9,8 @@
   --protein: #60a5fa;
   --calories: #fbbf24;
   --danger: #f87171;
+  --danger-fill: #b91c1c;
+  --on-danger: #fff;
   color-scheme: dark;
   font-family:
     'Outfit Variable',
@@ -797,8 +799,68 @@ textarea:focus {
 }
 
 /* Accountability */
-.streak {
+.workout-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.workout-heading h2 {
+  margin: 0;
+}
+
+.workout-streak {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.workout-plan-name {
+  margin: 1rem 0 0.25rem;
+  font-size: 1.3rem;
+}
+
+.companion-link {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  background: none;
+  padding: 0;
+  text-align: left;
+}
+
+.companion-link .pet-screen {
+  width: 72px;
+  height: 72px;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.companion-copy {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.companion-destination {
+  color: var(--accent);
+  font-size: 0.875rem;
+}
+
+.reset-button {
+  background: var(--danger-fill);
+  color: var(--on-danger);
   font-weight: 700;
+  padding: 0.75rem 1.5rem;
+  min-height: 48px;
+  max-width: 100%;
+  margin-top: 1rem;
 }
 
 .week {

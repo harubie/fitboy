@@ -7,7 +7,11 @@ import { Icon } from '../components/Icon'
 import { Meters } from '../components/Meters'
 import type { ScreenProps } from '../types'
 
-type Props = ScreenProps & { onAddMeal: () => void; onStartWorkout: (dayId: string) => void; onOpenMonsters: () => void }
+type Props = ScreenProps & {
+  onAddMeal: () => void
+  onStartWorkout: (dayId: string) => void
+  onOpenMonsters: () => void
+}
 
 export function Today({ data, setData, onAddMeal, onStartWorkout, onOpenMonsters }: Props) {
   const [now, setNow] = useState(() => new Date())
@@ -23,7 +27,8 @@ export function Today({ data, setData, onAddMeal, onStartWorkout, onOpenMonsters
   const status = statusFor(data, today)
   const sessionToday = data.sessions.findLast((s) => s.date === today)
   const next = quickStartPlan(data.routine, data.sessions)
-  const week = Array.from({ length: 7 }, (_, i) => addDays(today, i - 6))
+  const daysSinceMonday = (now.getDay() + 6) % 7
+  const week = Array.from({ length: 7 }, (_, i) => addDays(today, i - daysSinceMonday))
   const currentStreak = streak(data, today)
   const runs = workoutRuns(data)
   const monster = data.monsters?.active
@@ -62,13 +67,7 @@ export function Today({ data, setData, onAddMeal, onStartWorkout, onOpenMonsters
         />
       </section>
 
-      <section className="card">
-        <div className="row spread">
-          <h2>Feed the beast</h2>
-          <span className="streak">
-            <Icon name="flame" /> {currentStreak} day streak
-          </span>
-        </div>
+      <section className="card companion-card" aria-label="Your companion">
         {monster && (
           <Pet
             monster={monster}
@@ -80,12 +79,35 @@ export function Today({ data, setData, onAddMeal, onStartWorkout, onOpenMonsters
             onOpen={onOpenMonsters}
           />
         )}
+      </section>
+
+      <section className="card" aria-label="Workout and check-in">
+        <div className="workout-heading">
+          <h2>{status ? 'Today’s activity' : 'Next workout'}</h2>
+          <span className="workout-streak">
+            <Icon name="flame" /> {currentStreak > 0 ? `${currentStreak} day streak` : 'Start your streak!'}
+          </span>
+        </div>
+        {!status && next && (
+          <>
+            <h3 className="workout-plan-name">{next.name}</h3>
+            <p className="muted small">{next.exercises.length} exercises</p>
+            <button className="primary block" onClick={() => onStartWorkout(next.id)}>
+              Start workout <span aria-hidden="true">→</span>
+            </button>
+          </>
+        )}
+        {!status && !next && <p className="muted">Create a workout plan in Dojo to get started.</p>}
         <div className="week">
           {week.map((d) => {
             const s = statusFor(data, d)
             const [y, m, day] = d.split('-').map(Number)
             return (
-              <div key={d} className={`week-day ${d === today ? 'today' : ''}`}>
+              <div
+                key={d}
+                className={`week-day ${d === today ? 'today' : ''}`}
+                aria-current={d === today ? 'date' : undefined}
+              >
                 <span className="muted small">
                   {new Date(y, m - 1, day).toLocaleDateString(undefined, { weekday: 'narrow' })}
                 </span>
@@ -119,11 +141,6 @@ export function Today({ data, setData, onAddMeal, onStartWorkout, onOpenMonsters
           </div>
         ) : (
           <>
-            {next && (
-              <button className="primary block" onClick={() => onStartWorkout(next.id)}>
-                Start workout: {next.name}
-              </button>
-            )}
             <div className="row gap">
               <button className="secondary grow" onClick={() => setCheckIn('workout')}>
                 <Icon name="check" /> I worked out

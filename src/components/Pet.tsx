@@ -16,7 +16,7 @@ type PetProps = {
   devolved: boolean // already lost a stage during this neglect spell
   stars: number // lifetime stars, kept even when a streak breaks
   starProgress: number // workouts in the current streak toward the next star
-  onOpen: () => void
+  onOpen?: () => void
 }
 
 export function Pet({ monster, xp, neglect, devolved, stars, starProgress, onOpen }: PetProps) {
@@ -35,7 +35,7 @@ export function Pet({ monster, xp, neglect, devolved, stars, starProgress, onOpe
 
   // Celebrate when this monster grows into a new form or colour.
   const key = `${monster.id}:${monster.forms.length}:${tier}`
-  const [seen, setSeen] = useState(() => localStorage.getItem(SEEN_KEY))
+  const [seen, setSeen] = useState(() => globalThis.localStorage?.getItem(SEEN_KEY))
   if (seen !== key) {
     setSeen(key)
     const [id, len, t] = (seen ?? '').split(':')
@@ -72,40 +72,70 @@ export function Pet({ monster, xp, neglect, devolved, stars, starProgress, onOpe
   const name = `${tier ? `${tierName(tier)} ` : ''}${form.name}`
   const toward = starProgress % STAR_EVERY
 
+  if (onOpen) {
+    return (
+      <button className="companion-link" onClick={onOpen} aria-label={`Enter the Lair: ${name}`}>
+        <span className={`pet-screen ${evolved ? 'evolving' : ''}`}>
+          <PetSprite form={form.id} frame={frame} asleep={asleep} tier={tier} />
+          {evolved && <span className="pet-evolved">Evolved!</span>}
+        </span>
+        <span className="companion-copy">
+          <strong>
+            {name}
+            {form.id !== 'egg' && <span className="muted small"> · Lv {xp}</span>}
+          </strong>
+          <span className="muted small">
+            {form.id === 'egg'
+              ? 'Your first workout hatches it.'
+              : asleep
+                ? 'Check in to wake it up.'
+                : 'Every workout helps it grow.'}
+          </span>
+          <span className="companion-destination">
+            The Lair <span aria-hidden="true">→</span>
+          </span>
+        </span>
+      </button>
+    )
+  }
+
   return (
     <div className="pet">
-      <button className={`pet-screen ${evolved ? 'evolving' : ''}`} onClick={onOpen} aria-label="Enter the Lair">
+      <div className={`pet-screen ${evolved ? 'evolving' : ''}`}>
         <PetSprite form={form.id} frame={frame} asleep={asleep} tier={tier} />
         {evolved && <div className="pet-evolved">Evolved!</div>}
-      </button>
+      </div>
       <div className="pet-info">
         <span className="pet-name">
-          {name} <span className="muted">· {STAGE_NAMES[form.stage]} · Lv {xp}</span>
+          {name}{' '}
+          <span className="muted">
+            · {STAGE_NAMES[form.stage]} · Lv {xp}
+          </span>
         </span>
         <span className="muted small">{message}</span>
       </div>
-      <button className="lair-button" onClick={onOpen}>
-        <Icon name="lair" className="lair-icon" />
-        <span className="lair-text">
-          <strong>Enter the Lair</strong>
-          <span className="muted small">Raise, freeze &amp; fuse · Beastiary</span>
-        </span>
-        <Icon name="chevron" className="lair-chevron" />
-      </button>
       <details className="pet-stars">
         <summary>
           <span className="pet-star-count">
             <Icon name="star" /> {stars}
           </span>
           <span className="pet-star-progress">
-            <span className="pet-star-bar" role="progressbar" aria-valuemin={0} aria-valuemax={STAR_EVERY} aria-valuenow={toward}>
+            <span
+              className="pet-star-bar"
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={STAR_EVERY}
+              aria-valuenow={toward}
+            >
               <span style={{ width: `${(toward / STAR_EVERY) * 100}%` }} />
             </span>
             <span className="muted small">
               {toward}/{STAR_EVERY} workouts to next star
             </span>
           </span>
-          <span className="pet-star-help" aria-label="What are stars?">?</span>
+          <span className="pet-star-help" aria-label="What are stars?">
+            ?
+          </span>
         </summary>
         <p className="muted small">
           Every {STAR_EVERY} workouts in one streak earns a star. Rest days don't count, but they keep the streak going.

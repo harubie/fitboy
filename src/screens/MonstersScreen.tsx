@@ -1,9 +1,21 @@
 import { Encyclopedia } from '../components/Encyclopedia'
 import { BottomActions } from '../components/BottomActions'
 import { PetSprite } from '../components/PetSprite'
-import { dateKey } from '../logic'
-import { canFuse, currentForm, freeze, fuse, initialMonsters, monsterXp, reconcile, thaw } from '../monsters'
-import { FORM_BY_ID, STAGE_NAMES, SUPER, tierFor } from '../pet'
+import { Pet } from '../components/Pet'
+import { dateKey, streak, workoutRuns } from '../logic'
+import {
+  canFuse,
+  currentForm,
+  devolvedNow,
+  freeze,
+  fuse,
+  initialMonsters,
+  monsterXp,
+  neglectDays,
+  reconcile,
+  thaw,
+} from '../monsters'
+import { FORM_BY_ID, STAGE_NAMES, SUPER, tierFor, STAR_EVERY } from '../pet'
 import { Icon } from '../components/Icon'
 import type { AppData, Monster, Monsters, ScreenProps } from '../types'
 
@@ -32,6 +44,7 @@ export function MonstersScreen({ data, setData, onDone }: ScreenProps & { onDone
   const today = dateKey()
   const ms = data.monsters ?? initialMonsters(data, today)
   const active = ms.active
+  const runs = workoutRuns(data)
   const update = (fn: (ms: Monsters, d: AppData) => Monsters) =>
     setData((d) => {
       const cur = d.monsters ?? initialMonsters(d, today)
@@ -64,7 +77,14 @@ export function MonstersScreen({ data, setData, onDone }: ScreenProps & { onDone
 
         <section className="card">
           <h2>Raising now</h2>
-          <Card m={active} xp={monsterXp(active, data, today)} />
+          <Pet
+            monster={active}
+            xp={monsterXp(active, data, today)}
+            neglect={neglectDays(active, data, today)}
+            devolved={devolvedNow(active, data, today)}
+            stars={runs.reduce((sum, run) => sum + Math.floor(run / STAR_EVERY), 0)}
+            starProgress={streak(data, today) > 0 ? (runs.at(-1) ?? 0) : 0}
+          />
           <button className="secondary block" onClick={onFreeze}>
             <Icon name="snow" /> Cryo sleep &amp; hatch a new egg
           </button>

@@ -111,12 +111,13 @@ export function SettingsScreen({ data, setData }: ScreenProps) {
           </label>
         </div>
         <button
-          className="link danger"
+          className="reset-button"
+          aria-label="Reset all data"
           onClick={() => {
             if (confirm('Erase ALL data and start fresh?')) setData(() => defaultData())
           }}
         >
-          Reset everything
+          Reset
         </button>
       </section>
     </>

@@ -4,8 +4,8 @@ A small installable web app (PWA) for tracking protein/calories, workouts and da
 
 ## Features
 
-- **Today**: protein and calorie meters (pixel dial, RPG stat bars or classic dial), today's meals, a 7-day check-in strip and streak
-- **Feed the beast**: a Digimon-style pixel monster that eats your workouts (rest days keep it warm but don't feed it).
+- **Today**: protein and calorie meters (pixel dial, RPG stat bars or classic dial), today's meals, a Monday–Sunday check-in strip for the current local calendar week and streak
+- **Base companion**: a compact monster/Lair card above a separate workout card. The workout card shows your next plan, Start workout, weekly check-ins and streak. Detailed evolution messages and star progress live in the Lair. Your pixel monster eats workouts (rest days keep it warm but don't feed it).
   - Growth: Egg (0) → Baby I (1) → Baby II (3) → Child (7, 3 forms) → Adult (21, 5 forms) → Perfect (50, 7 forms) → Ultimate (100, 5 forms) → Super Ultimate (200). Each evolution randomly picks one of the forms the current one can grow into.
   - Miss a day and it gets sleepy; 7 days without any check-in and it devolves one stage (never below Baby I).
   - Tap the monster or **Enter the Lair** to open **The Lair**: put it in cryo sleep (it keeps its level and never gets hungry) and hatch a new egg, thaw it later, or fuse two Ultimates into the secret Chimera. The Beastiary lists every form: discovered ones show their art and evolution links, undiscovered ones are dark silhouettes (tap for hints).
