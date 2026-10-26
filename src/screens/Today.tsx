@@ -4,21 +4,40 @@ import type { ScreenProps } from '../types'
 
 type Props = ScreenProps & { onAddMeal: () => void; onStartWorkout: (dayId: string) => void }
 
-function ProgressBar({ label, value, goal, unit }: { label: string; value: number; goal: number; unit: string }) {
+function Gauge({ label, value, goal, unit, color }: { label: string; value: number; goal: number; unit: string; color: string }) {
   const pct = goal > 0 ? Math.min(100, (value / goal) * 100) : 0
   const left = goal - value
+  const done = value >= goal
+  const arc = 'M 20 100 A 80 80 0 0 1 180 100'
   return (
-    <div className="progress">
-      <div className="progress-head">
-        <span className="progress-label">{label}</span>
-        <span>
-          <strong>{Math.round(value)}</strong> / {goal}
+    <div className="gauge" role="meter" aria-label={label} aria-valuenow={value} aria-valuemin={0} aria-valuemax={goal}>
+      <svg viewBox="0 0 200 116" aria-hidden="true">
+        <path d={arc} className="gauge-track" pathLength={100} />
+        <path
+          d={arc}
+          className="gauge-fill"
+          pathLength={100}
+          stroke={done ? 'var(--accent)' : color}
+          strokeDasharray={`${pct} 1000`}
+          opacity={pct > 0 ? 1 : 0}
+        />
+        {[0, 25, 50, 75, 100].map((t) => (
+          <line key={t} x1="100" y1="12" x2="100" y2="4" className="gauge-tick" transform={`rotate(${t * 1.8 - 90} 100 100)`} />
+        ))}
+        <g className="gauge-needle" style={{ transform: `rotate(${pct * 1.8 - 90}deg)` }}>
+          <line x1="100" y1="100" x2="100" y2="38" />
+        </g>
+        <circle cx="100" cy="100" r="7" className="gauge-hub" />
+      </svg>
+      <div className="gauge-value">
+        <strong>{Math.round(value)}</strong>
+        <span className="muted small">
+          {' '}
+          / {goal}
           {unit}
         </span>
       </div>
-      <div className="bar" role="progressbar" aria-label={label} aria-valuenow={value} aria-valuemax={goal}>
-        <div className={`fill ${value >= goal ? 'done' : ''}`} style={{ width: `${pct}%` }} />
-      </div>
+      <div className="gauge-label">{label}</div>
       <div className="muted small">{left > 0 ? `${Math.round(left)}${unit} to go` : 'Goal reached 🎉'}</div>
     </div>
   )
@@ -58,8 +77,10 @@ export function Today({ data, setData, onAddMeal, onStartWorkout }: Props) {
       </header>
 
       <section className="card">
-        <ProgressBar label="Protein" value={totals.protein} goal={data.settings.proteinGoal} unit="g" />
-        <ProgressBar label="Calories" value={totals.calories} goal={data.settings.calorieGoal} unit=" kcal" />
+        <div className="gauges">
+          <Gauge label="Protein" value={totals.protein} goal={data.settings.proteinGoal} unit="g" color="var(--protein)" />
+          <Gauge label="Calories" value={totals.calories} goal={data.settings.calorieGoal} unit=" kcal" color="var(--calories)" />
+        </div>
       </section>
 
       <section className="card">

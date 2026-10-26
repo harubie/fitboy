@@ -7,6 +7,7 @@
   --accent: #4ade80;
   --accent-2: #22c55e;
   --protein: #60a5fa;
+  --calories: #fbbf24;
   --danger: #f87171;
   color-scheme: dark;
   font-family: system-ui, -apple-system, Roboto, sans-serif;
@@ -104,42 +105,69 @@ select {
   flex: 1;
 }
 
-/* Progress bars */
-.progress + .progress {
-  margin-top: 1rem;
+/* Speedometer gauges */
+.gauges {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
 }
 
-.progress-head {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 0.35rem;
+.gauge {
+  text-align: center;
 }
 
-.progress-label {
+.gauge svg {
+  width: 100%;
+  display: block;
+}
+
+.gauge-track,
+.gauge-fill {
+  fill: none;
+  stroke-width: 16;
+  stroke-linecap: round;
+}
+
+.gauge-track {
+  stroke: var(--border);
+}
+
+.gauge-fill {
+  transition: stroke-dasharray 0.6s ease;
+}
+
+.gauge-tick {
+  stroke: var(--muted);
+  stroke-width: 2;
+  opacity: 0.6;
+}
+
+.gauge-needle {
+  transform-origin: 100px 100px;
+  transform-box: view-box;
+  transition: transform 0.8s cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+
+.gauge-needle line {
+  stroke: var(--text);
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+
+.gauge-hub {
+  fill: var(--text);
+}
+
+.gauge-value {
+  margin-top: 0.25rem;
+}
+
+.gauge-value strong {
+  font-size: 1.5rem;
+}
+
+.gauge-label {
   font-weight: 600;
-}
-
-.bar {
-  height: 14px;
-  background: var(--border);
-  border-radius: 999px;
-  overflow: hidden;
-}
-
-.fill {
-  height: 100%;
-  background: var(--protein);
-  border-radius: 999px;
-  transition: width 0.4s ease;
-}
-
-.progress:nth-child(2) .fill {
-  background: #fbbf24;
-}
-
-.fill.done,
-.progress:nth-child(2) .fill.done {
-  background: var(--accent);
 }
 
 /* Buttons */
