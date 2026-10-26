@@ -1,28 +1,17 @@
-import { defaultData, uid } from '../logic'
+import { defaultData } from '../logic'
 import { loadData, STORAGE_KEY } from '../store'
-import type { AppData, Exercise, ScreenProps, WorkoutDay } from '../types'
+import { Meters } from '../components/Meters'
+import type { AppData, MeterStyle, ScreenProps } from '../types'
+
+const METER_STYLES: [MeterStyle, string][] = [
+  ['pixel', 'Pixel dial'],
+  ['bars', 'Stat bars'],
+  ['classic', 'Classic'],
+]
 
 export function SettingsScreen({ data, setData }: ScreenProps) {
   const setSettings = (patch: Partial<AppData['settings']>) =>
     setData((d) => ({ ...d, settings: { ...d.settings, ...patch } }))
-
-  const updateDay = (dayId: string, fn: (day: WorkoutDay) => WorkoutDay) =>
-    setData((d) => ({ ...d, routine: d.routine.map((x) => (x.id === dayId ? fn(x) : x)) }))
-
-  const updateExercise = (dayId: string, exId: string, patch: Partial<Exercise>) =>
-    updateDay(dayId, (day) => ({
-      ...day,
-      exercises: day.exercises.map((e) => (e.id === exId ? { ...e, ...patch } : e)),
-    }))
-
-  const moveDay = (i: number, dir: -1 | 1) =>
-    setData((d) => {
-      const routine = [...d.routine]
-      const j = i + dir
-      if (j < 0 || j >= routine.length) return d
-      ;[routine[i], routine[j]] = [routine[j], routine[i]]
-      return { ...d, routine }
-    })
 
   const exportData = () => {
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
@@ -48,7 +37,7 @@ export function SettingsScreen({ data, setData }: ScreenProps) {
   return (
     <>
       <header className="page-header">
-        <h1>Settings</h1>
+        <h1>Gear</h1>
       </header>
 
       <section className="card form">
@@ -81,88 +70,27 @@ export function SettingsScreen({ data, setData }: ScreenProps) {
       </section>
 
       <section className="card">
-        <h2>Workout routine</h2>
-        <p className="muted small">Days rotate in this order. "Up next" follows your last logged workout.</p>
-        {data.routine.map((day, i) => (
-          <div key={day.id} className="routine-day">
-            <div className="row gap">
-              <input
-                className="grow day-name"
-                aria-label="Day name"
-                value={day.name}
-                onChange={(e) => updateDay(day.id, (d) => ({ ...d, name: e.target.value }))}
-              />
-              <button className="icon" aria-label="Move up" onClick={() => moveDay(i, -1)}>
-                ↑
-              </button>
-              <button className="icon" aria-label="Move down" onClick={() => moveDay(i, 1)}>
-                ↓
-              </button>
-              <button
-                className="icon"
-                aria-label={`Delete ${day.name}`}
-                onClick={() => {
-                  if (confirm(`Delete "${day.name}"?`))
-                    setData((d) => ({ ...d, routine: d.routine.filter((x) => x.id !== day.id) }))
-                }}
-              >
-                ✕
-              </button>
-            </div>
-            {day.exercises.map((ex) => (
-              <div key={ex.id} className="exercise-edit">
-                <input
-                  aria-label="Exercise name"
-                  value={ex.name}
-                  onChange={(e) => updateExercise(day.id, ex.id, { name: e.target.value })}
-                />
-                <input
-                  aria-label="Sets"
-                  inputMode="numeric"
-                  value={ex.sets || ''}
-                  onChange={(e) => updateExercise(day.id, ex.id, { sets: Number(e.target.value) || 0 })}
-                />
-                <span className="muted">×</span>
-                <input
-                  aria-label="Reps"
-                  value={ex.reps}
-                  onChange={(e) => updateExercise(day.id, ex.id, { reps: e.target.value })}
-                />
-                <button
-                  className="icon"
-                  aria-label={`Remove ${ex.name}`}
-                  onClick={() =>
-                    updateDay(day.id, (d) => ({ ...d, exercises: d.exercises.filter((x) => x.id !== ex.id) }))
-                  }
-                >
-                  ✕
-                </button>
-              </div>
-            ))}
+        <h2>Meter style</h2>
+        <div className="seg-picker" role="radiogroup" aria-label="Meter style">
+          {METER_STYLES.map(([value, label]) => (
             <button
-              className="link"
-              onClick={() =>
-                updateDay(day.id, (d) => ({
-                  ...d,
-                  exercises: [...d.exercises, { id: uid(), name: 'New exercise', sets: 3, reps: '8-12' }],
-                }))
-              }
+              key={value}
+              role="radio"
+              aria-checked={data.settings.meterStyle === value}
+              className={data.settings.meterStyle === value ? 'active' : ''}
+              onClick={() => setSettings({ meterStyle: value })}
             >
-              + Add exercise
+              {label}
             </button>
-          </div>
-        ))}
-        <button
-          className="secondary block"
-          onClick={() =>
-            setData((d) => ({
-              ...d,
-              routine: [...d.routine, { id: uid(), name: `Day ${d.routine.length + 1}`, exercises: [] }],
-            }))
-          }
-        >
-          + Add workout day
-        </button>
+          ))}
+        </div>
+        <div className="meter-preview">
+          <Meters
+            style={data.settings.meterStyle}
+            protein={{ value: Math.round(data.settings.proteinGoal * 0.6), goal: data.settings.proteinGoal }}
+            calories={{ value: Math.round(data.settings.calorieGoal * 0.4), goal: data.settings.calorieGoal }}
+          />
+        </div>
       </section>
 
       <section className="card">

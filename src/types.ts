@@ -10,7 +10,13 @@ export type Exercise = {
   id: string
   name: string
   sets: number
-  reps: string // target, e.g. "8-12"
+  reps: string // target, e.g. "8-12" (seconds when timed)
+  target?: string // muscles worked, e.g. "Back & Biceps"
+  effort?: string // e.g. "2 RIR"
+  rest?: number // seconds between sets
+  cue?: string // key form tip
+  instructions?: string // user-written how-to steps, one per line
+  timed?: boolean // sets are held for `reps` seconds (e.g. plank)
 }
 
 export type WorkoutDay = {
@@ -19,11 +25,12 @@ export type WorkoutDay = {
   exercises: Exercise[]
 }
 
-export type SetLog = { weight: number; reps: number }
+export type SetLog = { weight: number; reps: number } // reps = seconds for timed exercises
 
 export type SessionEntry = {
   exerciseId: string
   exerciseName: string
+  timed?: boolean
   sets: SetLog[]
 }
 
@@ -37,10 +44,13 @@ export type Session = {
 
 export type CheckIn = 'workout' | 'rest'
 
+export type MeterStyle = 'pixel' | 'bars' | 'classic'
+
 export type Settings = {
   calorieGoal: number
   proteinGoal: number
   unit: 'kg' | 'lb'
+  meterStyle: MeterStyle
 }
 
 export type ScreenProps = {
@@ -54,4 +64,20 @@ export type AppData = {
   routine: WorkoutDay[]
   sessions: Session[]
   checkIns: Record<string, CheckIn>
+  monsters?: Monsters
+}
+
+export type Monster = {
+  id: string
+  born: string // date the egg was laid
+  forms: string[] // evolution path; the last one is the current form
+  base: number // workouts banked before `since` (or adjusted on devolve)
+  since?: string // date it became active; undefined while in cryo sleep
+  devolvedFor?: string // last-care date that already triggered a devolve
+}
+
+export type Monsters = {
+  active: Monster
+  cryo: Monster[]
+  dex: string[] // every form ever discovered
 }

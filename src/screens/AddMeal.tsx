@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { BottomActions } from '../components/BottomActions'
 import { dateKey, recentMeals, uid } from '../logic'
 import type { ScreenProps } from '../types'
 
@@ -27,13 +28,11 @@ export function AddMeal({ data, setData, onDone }: ScreenProps & { onDone: () =>
     <div className="app">
       <main className="content">
         <header className="page-header">
-          <button className="link" onClick={onDone}>
-            ← Back
-          </button>
           <h1>Add food</h1>
         </header>
 
         <form
+          id="add-food"
           className="card form"
           onSubmit={(e) => {
             e.preventDefault()
@@ -51,12 +50,14 @@ export function AddMeal({ data, setData, onDone }: ScreenProps & { onDone: () =>
             </label>
             <label className="grow">
               Calories
-              <input inputMode="decimal" value={calories} onChange={(e) => setCalories(e.target.value)} placeholder="0" />
+              <input
+                inputMode="decimal"
+                value={calories}
+                onChange={(e) => setCalories(e.target.value)}
+                placeholder="0"
+              />
             </label>
           </div>
-          <button className="primary block" disabled={!canSave}>
-            Add
-          </button>
         </form>
 
         {recent.length > 0 && (
@@ -81,6 +82,13 @@ export function AddMeal({ data, setData, onDone }: ScreenProps & { onDone: () =>
           </section>
         )}
       </main>
+      <footer className="screen-footer">
+        <BottomActions onBack={onDone}>
+          <button className="primary" form="add-food" disabled={!canSave}>
+            Add
+          </button>
+        </BottomActions>
+      </footer>
     </div>
   )
 }

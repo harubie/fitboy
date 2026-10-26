@@ -1,30 +1,55 @@
 import { useState } from 'react'
-import { formatSets, lastSets, nextWorkout } from '../logic'
-import type { ScreenProps } from '../types'
+import { formatSets, lastSets, planStats } from '../logic'
+import type { Exercise, ScreenProps } from '../types'
 
-export function Workouts({ data, setData, onStart }: ScreenProps & { onStart: (dayId: string) => void }) {
-  const next = nextWorkout(data.routine, data.sessions)
-  const [openId, setOpenId] = useState<string | undefined>(next?.id)
+const shortDate = (key: string) => {
+  const [y, m, d] = key.split('-').map(Number)
+  return new Date(y, m - 1, d).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' })
+}
+
+export function Workouts({
+  data,
+  setData,
+  onStart,
+  onEdit,
+  onGuide,
+}: ScreenProps & {
+  onStart: (dayId: string) => void
+  onEdit: (dayId?: string) => void
+  onGuide: (exercise: Exercise) => void
+}) {
+  const [openId, setOpenId] = useState<string | undefined>(data.routine.length === 1 ? data.routine[0].id : undefined)
   const unit = data.settings.unit
   const history = [...data.sessions].reverse().slice(0, 20)
 
   return (
     <>
       <header className="page-header">
-        <h1>Workouts</h1>
+        <h1>Dojo</h1>
       </header>
 
-      {data.routine.length === 0 && <p className="muted">No workout days yet — add some in Settings.</p>}
+      {data.routine.length === 0 && (
+        <section className="card">
+          <h2>No workout plans yet</h2>
+          <p className="muted small">Tap + to create one. You can start from the 90-Day Full Body template.</p>
+        </section>
+      )}
 
       {data.routine.map((day) => {
-        const isNext = day.id === next?.id
         const isOpen = openId === day.id
+        const stats = planStats(data.sessions, day.id)
         return (
-          <section key={day.id} className={`card ${isNext ? 'highlight' : ''}`}>
+          <section key={day.id} className="card">
             <button className="row spread plain" onClick={() => setOpenId(isOpen ? undefined : day.id)}>
-              <h2>
-                {day.name} {isNext && <span className="badge">Up next</span>}
-              </h2>
+              <div>
+                <h2>{day.name}</h2>
+                <div className="muted small">
+                  {day.exercises.length} exercise{day.exercises.length === 1 ? '' : 's'} ·{' '}
+                  {stats.last
+                    ? `Last done ${shortDate(stats.last)} · ${stats.count} session${stats.count === 1 ? '' : 's'}`
+                    : 'Not started yet'}
+                </div>
+              </div>
               <span className="muted">{isOpen ? '▾' : '▸'}</span>
             </button>
             {isOpen && (
@@ -35,19 +60,39 @@ export function Workouts({ data, setData, onStart }: ScreenProps & { onStart: (d
                     return (
                       <li key={ex.id}>
                         <div className="row spread">
-                          <span>{ex.name}</span>
-                          <span className="muted small">
+                          <div className="exercise-name">
+                            <span>{ex.name}</span>
+                            <button
+                              className="guide-button"
+                              aria-label={`How to: ${ex.name}`}
+                              aria-haspopup="dialog"
+                              title={`How to: ${ex.name}`}
+                              onClick={() => onGuide(ex)}
+                            >
+                              <span aria-hidden="true">?</span>
+                            </button>
+                          </div>
+                          <span className="muted small nowrap">
                             {ex.sets} × {ex.reps}
+                            {ex.timed ? 's' : ''}
                           </span>
                         </div>
-                        <div className="muted small">{last ? `Last: ${formatSets(last, unit)}` : 'No history yet'}</div>
+                        {ex.target && <div className="muted small">{ex.target}</div>}
+                        <div className="muted small">
+                          {last ? `Last: ${formatSets(last, unit, ex.timed)}` : 'No history yet'}
+                        </div>
                       </li>
                     )
                   })}
                 </ul>
-                <button className="primary block" onClick={() => onStart(day.id)}>
-                  Start {day.name}
-                </button>
+                <div className="plan-actions">
+                  <button className="secondary" onClick={() => onEdit(day.id)}>
+                    Edit
+                  </button>
+                  <button className="primary" onClick={() => onStart(day.id)}>
+                    Start
+                  </button>
+                </div>
               </>
             )}
           </section>
@@ -69,7 +114,10 @@ export function Workouts({ data, setData, onStart }: ScreenProps & { onStart: (d
                     aria-label="Delete session"
                     onClick={() => {
                       if (confirm(`Delete ${s.dayName} on ${s.date}?`))
-                        setData((d) => ({ ...d, sessions: d.sessions.filter((x) => x.id !== s.id) }))
+                        setData((d) => ({
+                          ...d,
+                          sessions: d.sessions.filter((x) => x.id !== s.id),
+                        }))
                     }}
                   >
                     ✕
@@ -79,7 +127,7 @@ export function Workouts({ data, setData, onStart }: ScreenProps & { onStart: (d
                   .filter((e) => e.sets.length)
                   .map((e) => (
                     <div key={e.exerciseId} className="muted small">
-                      {e.exerciseName}: {formatSets(e.sets, unit)}
+                      {e.exerciseName}: {formatSets(e.sets, unit, e.timed)}
                     </div>
                   ))}
               </li>
@@ -87,6 +135,9 @@ export function Workouts({ data, setData, onStart }: ScreenProps & { onStart: (d
           </ul>
         </section>
       )}
+      <button className="fab" aria-label="New workout plan" onClick={() => onEdit()}>
+        +
+      </button>
     </>
   )
 }
