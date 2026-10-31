@@ -129,11 +129,11 @@ export function lastSets(sessions: Session[], exerciseId: string): SetLog[] | un
   return undefined
 }
 
-export function formatSets(sets: SetLog[], unit: string, timed = false): string {
+export function formatSets(sets: SetLog[], unit: string, timed = false, measurement?: Exercise['measurement']): string {
   return sets
     .map((s) => {
-      const amount = timed ? `${s.reps}s` : String(s.reps)
-      return s.weight > 0 ? `${s.weight}${unit}×${amount}` : timed ? amount : `BW×${amount}`
+      const amount = measurement ? `${s.reps}${measurement === 'minutes' ? 'min' : 'm'}` : timed ? `${s.reps}s` : String(s.reps)
+      return s.weight > 0 ? `${s.weight}${unit}×${amount}` : timed || measurement ? amount : `BW×${amount}`
     })
     .join(', ')
 }

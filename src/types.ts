@@ -24,27 +24,30 @@ export type Exercise = {
   id: string
   name: string
   sets: number
-  reps: string // target, e.g. "8-12" (seconds when timed)
+  reps: string // target, e.g. "8-12"; seconds when timed, otherwise measurement units if set
   target?: string // muscles worked, e.g. "Back & Biceps"
   effort?: string // e.g. "2 RIR"
   rest?: number // seconds between sets
   cue?: string // key form tip
   instructions?: string // user-written how-to steps, one per line
   timed?: boolean // sets are held for `reps` seconds (e.g. plank)
+  measurement?: 'minutes' | 'metres'
 }
 
 export type WorkoutDay = {
   id: string
   name: string
   exercises: Exercise[]
+  note?: string
 }
 
-export type SetLog = { weight: number; reps: number } // reps = seconds for timed exercises
+export type SetLog = { weight: number; reps: number } // reps stores the exercise's reps, seconds, minutes or metres
 
 export type SessionEntry = {
   exerciseId: string
   exerciseName: string
   timed?: boolean
+  measurement?: Exercise['measurement']
   sets: SetLog[]
 }
 

@@ -58,6 +58,7 @@ export function Workouts({
             </button>
             {isOpen && (
               <>
+                {day.note && <p className="muted small">{day.note}</p>}
                 <ul className="list">
                   {day.exercises.map((ex) => {
                     const last = lastSets(data.sessions, ex.id)
@@ -78,12 +79,12 @@ export function Workouts({
                           </div>
                           <span className="muted small nowrap">
                             {ex.sets} × {ex.reps}
-                            {ex.timed ? 's' : ''}
+                            {ex.measurement === 'minutes' ? ' min' : ex.measurement === 'metres' ? ' m' : ex.timed ? 's' : ''}
                           </span>
                         </div>
                         {ex.target && <div className="muted small">{ex.target}</div>}
                         <div className="muted small">
-                          {last ? `Last: ${formatSets(last, unit, ex.timed)}` : 'No history yet'}
+                          {last ? `Last: ${formatSets(last, unit, ex.timed, ex.measurement)}` : 'No history yet'}
                         </div>
                       </li>
                     )
@@ -143,7 +144,7 @@ export function Workouts({
                   .filter((e) => e.sets.length)
                   .map((e) => (
                     <div key={e.exerciseId} className="muted small">
-                      {e.exerciseName}: {formatSets(e.sets, unit, e.timed)}
+                      {e.exerciseName}: {formatSets(e.sets, unit, e.timed, e.measurement)}
                     </div>
                   ))}
               </li>

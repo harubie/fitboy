@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { BottomActions } from '../components/BottomActions'
-import { FULL_BODY_NAME, fullBodyDay, uid } from '../logic'
+import { uid } from '../logic'
+import { workoutTemplates } from '../workout-templates'
 import type { Exercise, ScreenProps, WorkoutDay } from '../types'
 
 const blankExercise = (): Exercise => ({ id: uid(), name: '', sets: 3, reps: '10-12', rest: 90 })
@@ -28,9 +29,9 @@ export function PlanEditor({ dayId, data, setData, onDone }: ScreenProps & { day
     })
 
   const isBlank = !existing && draft.exercises.every((e) => !e.name.trim())
-  const useTemplate = () => {
-    const t = fullBodyDay()
-    edit((d) => ({ ...d, name: d.name.trim() || t.name, exercises: t.exercises }))
+  const applyTemplate = (create: () => WorkoutDay) => {
+    const t = create()
+    edit((d) => ({ ...d, name: d.name.trim() || t.name, exercises: t.exercises, note: t.note }))
   }
 
   const exercises = draft.exercises.map((e) => ({ ...e, name: e.name.trim() })).filter((e) => e.name)
@@ -73,17 +74,24 @@ export function PlanEditor({ dayId, data, setData, onDone }: ScreenProps & { day
               onChange={(e) => edit((d) => ({ ...d, name: e.target.value }))}
             />
           </label>
+          <label>
+            Plan notes
+            <textarea rows={2} value={draft.note ?? ''} onChange={(event) =>
+              edit((d) => ({ ...d, note: event.target.value || undefined }))} />
+          </label>
         </section>
 
         {isBlank && (
           <section className="card">
             <h2>Start from a template</h2>
             <p className="muted small">
-              Fills in all 7 exercises with sets, rest times and form tips. You can tweak them after.
+              Choose a plan to fill in its exercises and targets. You can tweak it before saving.
             </p>
-            <button className="secondary block" onClick={useTemplate}>
-              {FULL_BODY_NAME}
-            </button>
+            {workoutTemplates.map((template) => (
+              <button key={template.name} className="secondary block" onClick={() => applyTemplate(template.create)}>
+                {template.name}
+              </button>
+            ))}
           </section>
         )}
 
@@ -126,7 +134,7 @@ export function PlanEditor({ dayId, data, setData, onDone }: ScreenProps & { day
                 />
               </label>
               <label>
-                {ex.timed ? 'Seconds' : 'Reps'}
+                {ex.measurement === 'minutes' ? 'Minutes' : ex.measurement === 'metres' ? 'Metres' : ex.timed ? 'Seconds' : 'Reps'}
                 <input value={ex.reps} onChange={(e) => updateEx(ex.id, { reps: e.target.value })} />
               </label>
               <label>
@@ -138,13 +146,20 @@ export function PlanEditor({ dayId, data, setData, onDone }: ScreenProps & { day
                 />
               </label>
             </div>
-            <label className="check-row">
-              <input
-                type="checkbox"
-                checked={!!ex.timed}
-                onChange={(e) => updateEx(ex.id, { timed: e.target.checked || undefined })}
-              />
-              Timed hold (seconds, e.g. plank)
+            <label>
+              Log as
+              <select value={ex.measurement ?? (ex.timed ? 'seconds' : 'reps')} onChange={(event) => {
+                const value = event.target.value
+                updateEx(ex.id, {
+                  timed: value === 'seconds' || undefined,
+                  measurement: value === 'minutes' || value === 'metres' ? value : undefined,
+                })
+              }}>
+                <option value="reps">Reps</option>
+                <option value="seconds">Seconds (timed hold)</option>
+                <option value="minutes">Minutes (cardio)</option>
+                <option value="metres">Metres (distance)</option>
+              </select>
             </label>
             <details>
               <summary className="muted small">More details: muscles, effort, form tip, how-to steps</summary>

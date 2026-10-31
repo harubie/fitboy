@@ -7,7 +7,7 @@ import type { Exercise, ScreenProps, WorkoutDay } from '../types'
 
 type Row = { weight: string; reps: string; prevReps?: number }
 type Timer = {
-  kind: 'rest' | 'hold'
+  kind: 'rest' | 'hold' | 'cardio'
   exId: string
   label: string
   total: number
@@ -69,6 +69,15 @@ export function SessionScreen({
     const sec = Number(ex.reps) || 30
     setTimer(makeTimer('hold', ex, `Hold ${ex.name}`, sec))
   }
+  const startCardio = (ex: Exercise) => {
+    const minutes = Number.parseFloat(ex.reps)
+    if (!Number.isFinite(minutes) || minutes <= 0) {
+      alert('Enter a positive minute target before starting the cardio timer.')
+      return
+    }
+    setNow(Date.now())
+    setTimer(makeTimer('cardio', ex, ex.name, minutes * 60))
+  }
 
   // Timestamps (not tick counts) keep the timer right even if the phone sleeps.
   useEffect(() => {
@@ -79,14 +88,14 @@ export function SessionScreen({
       if (t < timer.endsAt) return
       navigator.vibrate?.([200, 100, 200])
       const ex = day.exercises.find((e) => e.id === timer.exId)
-      if (timer.kind === 'hold' && ex) {
+      if ((timer.kind === 'hold' || timer.kind === 'cardio') && ex) {
         setRows((r) => {
           const i = r[ex.id].findIndex((row) => !row.reps)
           return i < 0
             ? r
             : {
                 ...r,
-                [ex.id]: r[ex.id].map((row, j) => (j === i ? { ...row, reps: String(timer.total) } : row)),
+                [ex.id]: r[ex.id].map((row, j) => (j === i ? { ...row, reps: String(timer.kind === 'cardio' ? timer.total / 60 : timer.total) } : row)),
               }
         })
         if (ex.rest) {
@@ -106,8 +115,9 @@ export function SessionScreen({
     exerciseId: ex.id,
     exerciseName: ex.name,
     ...(ex.timed ? { timed: true } : {}),
+    ...(ex.measurement ? { measurement: ex.measurement } : {}),
     sets: rows[ex.id]
-      .filter((r) => Number(r.reps) > 0)
+      .filter((r) => Number.isFinite(Number(r.reps)) && Number(r.reps) > 0)
       .map((r) => ({
         weight: Math.max(0, Number(r.weight) || 0),
         reps: Number(r.reps),
@@ -141,6 +151,7 @@ export function SessionScreen({
           <h1>{day.name}</h1>
         </header>
         <LogDate date={date} today={today} onChange={setDate} />
+        {day.note && <p className="card muted small">{day.note}</p>}
 
         {hasRir && (
           <details className="card hint">
@@ -173,7 +184,7 @@ export function SessionScreen({
               <div className="ex-meta">
                 <span className="chip">
                   {ex.sets} × {ex.reps}
-                  {ex.timed ? 's' : ' reps'}
+                  {ex.measurement === 'minutes' ? ' min' : ex.measurement === 'metres' ? ' m' : ex.timed ? 's' : ' reps'}
                 </span>
                 {ex.effort && <span className="chip">{ex.effort}</span>}
                 {ex.rest && <span className="chip">Rest {ex.rest}s</span>}
@@ -183,11 +194,11 @@ export function SessionScreen({
                   <strong>Form:</strong> {ex.cue}
                 </p>
               )}
-              {last && <p className="muted small">Last: {formatSets(last, unit, ex.timed)}</p>}
+              {last && <p className="muted small">Last: {formatSets(last, unit, ex.timed, ex.measurement)}</p>}
               <div className="sets">
                 <span className="muted small">Set</span>
                 <span className="muted small">Weight ({unit})</span>
-                <span className="muted small">{ex.timed ? 'Seconds' : 'Reps'}</span>
+                <span className="muted small">{ex.measurement === 'minutes' ? 'Minutes' : ex.measurement === 'metres' ? 'Metres' : ex.timed ? 'Seconds' : 'Reps'}</span>
                 {rows[ex.id].map((r, i) => (
                   <div key={i} className="set-row">
                     <span className="set-num">{i + 1}</span>
@@ -199,8 +210,8 @@ export function SessionScreen({
                       placeholder={ex.timed ? 'BW' : '0'}
                     />
                     <input
-                      inputMode="numeric"
-                      aria-label={`${ex.name} set ${i + 1} ${ex.timed ? 'seconds' : 'reps'}`}
+                      inputMode={ex.measurement ? 'decimal' : 'numeric'}
+                      aria-label={`${ex.name} set ${i + 1} ${ex.measurement ?? (ex.timed ? 'seconds' : 'reps')}`}
                       value={r.reps}
                       onChange={(e) => {
                         if (!r.reps && e.target.value) startRest(ex)
@@ -214,6 +225,11 @@ export function SessionScreen({
               {ex.timed && (
                 <button className="primary block hold-btn" onClick={() => startHold(ex)}>
                   Start {Number(ex.reps) || 30}s hold
+                </button>
+              )}
+              {ex.measurement === 'minutes' && (
+                <button className="primary block hold-btn" onClick={() => startCardio(ex)}>
+                  Start {Number.parseFloat(ex.reps) || 'target'} min timer
                 </button>
               )}
               <div className="row gap">
@@ -275,7 +291,7 @@ export function SessionScreen({
         )}
         <BottomActions onBack={onDone}>
           <button className="primary" disabled={setCount === 0 || !validDate} onClick={save}>
-            {setCount === 0 ? 'Enter reps to log sets' : `Finish workout (${setCount} sets)`}
+            {setCount === 0 ? 'Enter reps, time or distance to log sets' : `Finish workout (${setCount} sets)`}
           </button>
         </BottomActions>
       </footer>
