@@ -20,6 +20,19 @@ export function isLogDate(key: string, today = dateKey()): boolean {
   return y >= 1000 && dateKey(new Date(y, m - 1, d)) === key
 }
 
+export function displayDate(key: string): string {
+  return key.split('-').reverse().join('/')
+}
+
+export function weekHeading(start: string, end: string): string {
+  const format = (key: string, includeYear: boolean) => {
+    const [year, month, day] = key.split('-').map(Number)
+    const monthName = new Date(year, month - 1, day).toLocaleDateString('en-GB', { month: 'short' })
+    return `${day} ${monthName}${includeYear ? ` ${year}` : ''}`
+  }
+  return `${format(start, start.slice(0, 4) !== end.slice(0, 4))} – ${format(end, true)}`
+}
+
 export function newestSessions(sessions: Session[]): Session[] {
   return [...sessions].reverse().sort((a, b) => b.date.localeCompare(a.date))
 }

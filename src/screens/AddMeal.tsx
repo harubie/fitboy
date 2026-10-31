@@ -6,7 +6,7 @@ import { LogDate } from '../components/LogDate'
 import { useLogDate } from '../useLogDate'
 import { foodCatalog, foodTotals, nutritionNumber } from '../foods'
 import type { Ingredient } from '../foods'
-import { isLogDate, recentMeals, uid } from '../logic'
+import { displayDate, isLogDate, recentMeals, uid } from '../logic'
 import type { Meal, SavedFood, ScreenProps } from '../types'
 import '../food-logging.css'
 
@@ -119,6 +119,13 @@ export function AddMeal({ data, setData, onDone, initialDate, onSavedDate }: Scr
                 className={tab === label ? 'active' : ''} aria-pressed={tab === label}
                 onClick={() => { setTab(label); setSearch(''); setShowSearch(false) }}>{label}</button>)}
             </div>
+            <div className="row gap food-tools">
+              <button type="button" className="secondary grow" aria-expanded={showSearch}
+                onClick={() => { setShowSearch(!showSearch); setSearch('') }}>Search foods</button>
+              <button type="button" className="secondary grow" onClick={() => setEditing({})}>+ New food</button>
+            </div>
+            {showSearch && <label>Search all foods<input value={search} placeholder="Food name"
+              onChange={(event) => setSearch(event.target.value)} /></label>}
             <div className="food-grid">{matches.map((food) => <div className="food-tile" key={food.id}>
               <button type="button" className="secondary food-pick" onClick={() => setSelected(food)}>
                 <strong>{food.name}</strong><span className="muted small">{food.serving} {food.unit}{food.estimated ? ' · estimated' : ''}</span>
@@ -127,14 +134,7 @@ export function AddMeal({ data, setData, onDone, initialDate, onSavedDate }: Scr
                 aria-pressed={food.pinned} onClick={() => saveFood({ ...food, pinned: !food.pinned })}>{food.pinned ? '★' : '☆'}</button>
             </div>)}</div>
             {!matches.length && <p className="muted small">{tab === 'Pinned' && !showSearch
-              ? 'Pin foods from All foods, or add your first food below.' : 'No matching foods. Add a new food below.'}</p>}
-            <div className="row gap food-tools">
-              <button type="button" className="secondary grow" aria-expanded={showSearch}
-                onClick={() => { setShowSearch(!showSearch); setSearch('') }}>Search foods</button>
-              <button type="button" className="secondary grow" onClick={() => setEditing({})}>+ New food</button>
-            </div>
-            {showSearch && <label>Search all foods<input value={search} placeholder="Food name"
-              onChange={(event) => setSearch(event.target.value)} /></label>}
+              ? 'Pin foods from All foods, or tap + New food.' : 'No matching foods. Tap + New food to add one.'}</p>}
             <p className="muted small">Older meal totals are one serving of the entire meal, not individual ingredients.</p>
           </section>
           {editing && <FoodEditor key={editing.food?.id ?? 'new'} food={editing.food} foods={catalog}
@@ -165,7 +165,7 @@ export function AddMeal({ data, setData, onDone, initialDate, onSavedDate }: Scr
       </main>
       <footer className="screen-footer food-total">
         <div className="row spread">
-          <span className="muted small">{(path === 'quick' ? estimated : items.some(({ food }) => food.estimated)) ? 'Estimated total' : 'Meal total'} · {date}</span>
+          <span className="muted small">{(path === 'quick' ? estimated : items.some(({ food }) => food.estimated)) ? 'Estimated total' : 'Meal total'} · {displayDate(date)}</span>
           <strong aria-live="polite">{Math.round(totals.calories)} kcal · {Math.round(totals.protein * 10) / 10} g protein</strong>
         </div>
         <BottomActions onBack={onDone}>

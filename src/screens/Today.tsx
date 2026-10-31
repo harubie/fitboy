@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { Pet } from '../components/Pet'
-import { addDays, isLogDate, quickStartPlan, statusFor, streak, totalsFor, workoutRuns } from '../logic'
+import { addDays, displayDate, isLogDate, quickStartPlan, statusFor, streak, totalsFor, weekHeading, workoutRuns } from '../logic'
 import { useLogDate } from '../useLogDate'
 import { devolvedNow, initialMonsters, monsterXp, neglectDays, reconcile } from '../monsters'
 import { STAR_EVERY } from '../pet'
@@ -64,7 +64,7 @@ export function Today({ data, setData, onAddMeal, onStartWorkout, onOpenMonsters
           <button className="secondary" aria-label="Previous week"
             disabled={!isLogDate(addDays(week[0], -7), today)}
             onClick={() => setDate(addDays(date, -7))}>←</button>
-          <span className="muted small">{week[0]} – {week[6]}</span>
+          <span className="muted small">{weekHeading(week[0], week[6])}</span>
           <button className="secondary" aria-label="Next week" disabled={week[6] >= today}
             onClick={() => setDate(addDays(date, 7) > today ? today : addDays(date, 7))}>→</button>
         </div>
@@ -75,7 +75,7 @@ export function Today({ data, setData, onAddMeal, onStartWorkout, onOpenMonsters
             return (
               <button type="button" key={d} className={`week-day ${d === today ? 'today' : ''}`}
                 aria-current={d === today ? 'date' : undefined} aria-pressed={d === date}
-                aria-label={`${d}: ${s ?? 'not checked in'}`} disabled={d > today} onClick={() => setDate(d)}>
+                aria-label={`${displayDate(d)}: ${s ?? 'not checked in'}`} disabled={d > today} onClick={() => setDate(d)}>
                 <span className="muted small">{new Date(y, m - 1, day).toLocaleDateString(undefined, { weekday: 'short' })}</span>
                 <strong>{day}</strong>
                 <span className={`dot ${s ?? ''}`}>{s === 'workout' ? '✓' : s === 'rest' ? 'z' : ''}</span>
@@ -126,7 +126,7 @@ export function Today({ data, setData, onAddMeal, onStartWorkout, onOpenMonsters
         {!status && !next && <p className="muted">Create a workout plan in Dojo to get started.</p>}
         {sessionToday ? (
           <p className="ok">
-            <Icon name="check" /> Worked out {date === today ? 'today' : `on ${date}`}: {sessionToday.dayName}
+            <Icon name="check" /> Worked out {date === today ? 'today' : `on ${displayDate(date)}`}: {sessionToday.dayName}
             <span className="muted small"> · To change this to a rest day, delete the session in Dojo history.</span>
           </p>
         ) : status === 'workout' ? (

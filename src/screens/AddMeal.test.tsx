@@ -22,7 +22,7 @@ it('retains the selected backdate in food and session forms', () => {
     <SessionScreen key="workout" {...props} day={data.routine[0]} onGuide={() => {}} />,
   ]) {
     const html = renderToStaticMarkup(screen)
-    expect(html).toContain('Logging for 2026-01-01')
+    expect(html).toContain('Logging for 01/01/2026')
     expect(html).toContain('aria-expanded="false"')
     expect(html).not.toContain('Yesterday')
     expect(html).not.toContain('Pick date')
@@ -37,5 +37,5 @@ it('allows correcting existing workout dates and displays history in date order'
   const html = renderToStaticMarkup(<Workouts data={data} setData={() => {}}
     onStart={() => {}} onEdit={() => {}} onGuide={() => {}} />)
   expect(html.match(/>Change date<\/button>/g)).toHaveLength(2)
-  expect(html.indexOf('2026-10-30 ·')).toBeLessThan(html.indexOf('2026-10-20 ·'))
+  expect(html.indexOf('30/10/2026 ·')).toBeLessThan(html.indexOf('20/10/2026 ·'))
 })

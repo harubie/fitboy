@@ -12,6 +12,8 @@ import {
   totalsFor,
   workoutRuns,
   isLogDate,
+  displayDate,
+  weekHeading,
 } from './logic'
 import type { Meal, Session, WorkoutDay } from './types'
 
@@ -41,6 +43,17 @@ describe('addDays', () => {
   it('crosses month and year boundaries', () => {
     expect(addDays('2026-01-31', 1)).toBe('2026-02-01')
     expect(addDays('2026-01-01', -1)).toBe('2025-12-31')
+  })
+
+  describe('display dates', () => {
+    it('shows numeric dates as DD/MM/YYYY', () => {
+      expect(displayDate('2026-01-09')).toBe('09/01/2026')
+    })
+    it('uses short month names in week ranges, including year boundaries', () => {
+      expect(weekHeading('2026-10-26', '2026-11-01')).toBe('26 Oct – 1 Nov 2026')
+      expect(weekHeading('2026-10-19', '2026-10-25')).toBe('19 Oct – 25 Oct 2026')
+      expect(weekHeading('2026-12-28', '2027-01-03')).toBe('28 Dec 2026 – 3 Jan 2027')
+    })
   })
 
   describe('isLogDate', () => {

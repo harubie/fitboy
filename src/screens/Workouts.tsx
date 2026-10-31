@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { formatSets, isLogDate, lastSets, newestSessions, planStats } from '../logic'
+import { displayDate, formatSets, isLogDate, lastSets, newestSessions, planStats } from '../logic'
 import { LogDate } from '../components/LogDate'
 import { useLogDate } from '../useLogDate'
 import type { Exercise, ScreenProps } from '../types'
@@ -111,13 +111,13 @@ export function Workouts({
               <li key={s.id}>
                 <div className="row spread">
                   <strong>
-                    {s.date} · {s.dayName}
+                    {displayDate(s.date)} · {s.dayName}
                   </strong>
                   <button
                     className="icon"
                     aria-label="Delete session"
                     onClick={() => {
-                      if (confirm(`Delete ${s.dayName} on ${s.date}?`))
+                      if (confirm(`Delete ${s.dayName} on ${displayDate(s.date)}?`))
                         setData((d) => ({
                           ...d,
                           sessions: d.sessions.filter((x) => x.id !== s.id),

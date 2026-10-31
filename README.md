@@ -5,6 +5,7 @@ A small installable web app (PWA) for tracking protein/calories, workouts and da
 ## Features
 
 - **Today**: protein and calorie meters (pixel dial, RPG stat bars or classic dial), daily meals, a Monday–Sunday day picker at the top and streak. Tap any past day, including a missed day, to open its daily log; arrows move between weeks. Mark Workout or Rest, or Undo a manual check-in, for the selected day. Dates use the phone's local calendar and future dates are not allowed. A logged session counts as a workout; delete it in Dojo history before marking that day as Rest.
+  - Numeric date labels use **DD/MM/YYYY**; week headings use short month names (e.g. **26 Oct – 1 Nov 2026**). The native calendar input follows the phone/browser locale; stored dates and backups retain YYYY-MM-DD.
 - **Base companion**: a compact monster/Lair card above a separate workout card. The workout card shows your next plan, Start workout, weekly check-ins and streak. Detailed evolution messages and star progress live in the Lair. Your pixel monster eats workouts (rest days keep it warm but don't feed it).
   - Growth: Egg (0) → Baby I (1) → Baby II (3) → Child (7, 3 forms) → Adult (21, 5 forms) → Perfect (50, 7 forms) → Ultimate (100, 5 forms) → Super Ultimate (200). Each evolution randomly picks one of the forms the current one can grow into.
   - Miss a day and it gets sleepy; 7 days without any check-in and it devolves one stage (never below Baby I).

@@ -1,5 +1,5 @@
 import { useId, useState } from 'react'
-import { isLogDate } from '../logic'
+import { displayDate, isLogDate } from '../logic'
 
 export function LogDate({ date, today, onChange }: {
   date: string; today: string; onChange: (date: string) => void
@@ -10,7 +10,7 @@ export function LogDate({ date, today, onChange }: {
     <section className="log-date">
       <button type="button" className="secondary block" aria-expanded={picking} aria-controls={id}
         onClick={() => setPicking(!picking)}>
-        {isLogDate(date, today) ? `Logging for ${date}${date === today ? ' (today)' : ''}` : 'Choose a log date'}
+        {isLogDate(date, today) ? `Logging for ${displayDate(date)}${date === today ? ' (today)' : ''}` : 'Choose a log date'}
         <span aria-hidden="true"> ▾</span>
       </button>
       {picking && (
