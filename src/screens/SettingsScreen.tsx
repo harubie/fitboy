@@ -1,6 +1,7 @@
 import { defaultData } from '../logic'
 import { loadData, STORAGE_KEY } from '../store'
 import { Meters } from '../components/Meters'
+import { isSavedFood } from '../foods'
 import type { AppData, MeterStyle, ScreenProps } from '../types'
 
 const METER_STYLES: [MeterStyle, string][] = [
@@ -26,6 +27,10 @@ export function SettingsScreen({ data, setData }: ScreenProps) {
     try {
       const parsed = JSON.parse(await file.text()) as AppData
       if (!Array.isArray(parsed.meals) || !Array.isArray(parsed.routine)) throw new Error('bad file')
+      if (parsed.savedFoods !== undefined && (!Array.isArray(parsed.savedFoods) || !parsed.savedFoods.every(isSavedFood)
+        || new Set(parsed.savedFoods.map((food) => food.id)).size !== parsed.savedFoods.length)) {
+        throw new Error('Invalid saved foods')
+      }
       if (!confirm('Replace all current data with this backup?')) return
       localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed))
       setData(() => loadData())

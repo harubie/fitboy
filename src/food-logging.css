@@ -1,0 +1,27 @@
+.food-logging .content { padding-bottom: 12rem; }
+.food-logging button, .food-sheet button { min-height: 48px; }
+.food-tabs { margin-bottom: 1rem; }
+.food-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; }
+.food-tile { position: relative; min-width: 0; }
+.food-pick { width: 100%; min-height: 88px !important; padding-right: 2.75rem; text-align: left; }
+.food-pick strong, .food-pick span { display: block; overflow-wrap: anywhere; }
+.food-pin { position: absolute; right: 0; top: 0; color: var(--calories); }
+.food-tools { margin: 1rem 0 0.75rem; }
+.food-meal-item { gap: 0.5rem; margin-top: 0.75rem; }
+.food-meal-item .grow { min-width: 0; overflow-wrap: anywhere; text-align: left; }
+.food-total { padding: 0.75rem 1rem max(0.75rem, env(safe-area-inset-bottom)); }
+.food-total > .row { margin-bottom: 0.5rem; gap: 0.5rem; flex-wrap: wrap; }
+.food-sheet {
+  position: fixed; inset: auto 0 0; margin: 0 auto; width: min(100%, 560px);
+  max-width: 100%; max-height: 90dvh; overflow-y: auto; padding: 1rem;
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  border: 1px solid var(--border); border-radius: 20px 20px 0 0;
+  background: var(--card); color: var(--text); overflow-wrap: anywhere;
+}
+.food-sheet::backdrop { background: rgb(0 0 0 / 70%); }
+.food-sheet h2 { margin: 0; }
+.food-stepper { display: grid; grid-template-columns: 64px minmax(0, 1fr) 64px; align-items: center; text-align: center; gap: 0.5rem; margin: 1rem 0; }
+.food-stepper strong { font-size: 2rem; overflow-wrap: anywhere; }
+.food-shortcuts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.5rem; margin-bottom: 1rem; }
+.food-shortcuts button { padding: 0.5rem 0.25rem; }
+.food-portion-total { text-align: center; font-weight: 600; }

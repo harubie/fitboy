@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { BottomActions } from '../components/BottomActions'
-import { dateKey, formatSets, lastSets, uid } from '../logic'
+import { formatSets, isLogDate, lastSets, uid } from '../logic'
+import { LogDate } from '../components/LogDate'
+import { useLogDate } from '../useLogDate'
 import type { Exercise, ScreenProps, WorkoutDay } from '../types'
 
 type Row = { weight: string; reps: string; prevReps?: number }
@@ -28,7 +30,10 @@ export function SessionScreen({
   setData,
   onDone,
   onGuide,
-}: ScreenProps & { day: WorkoutDay; onDone: () => void; onGuide: (exercise: Exercise) => void }) {
+  initialDate,
+  onSavedDate,
+}: ScreenProps & { day: WorkoutDay; onDone: () => void; onGuide: (exercise: Exercise) => void; initialDate?: string; onSavedDate?: (date: string) => void }) {
+  const { date, setDate, today, validDate } = useLogDate(initialDate)
   const unit = data.settings.unit
   // Weight is prefilled from last time; reps must be entered for a set to count.
   const [rows, setRows] = useState<Record<string, Row[]>>(() =>
@@ -111,19 +116,21 @@ export function SessionScreen({
   const setCount = entries.reduce((n, e) => n + e.sets.length, 0)
 
   const save = () => {
+    if (!isLogDate(date)) { alert('Choose a valid workout date on or before today.'); return }
     setData((d) => ({
       ...d,
       sessions: [
         ...d.sessions,
         {
           id: uid(),
-          date: dateKey(),
+          date,
           dayId: day.id,
           dayName: day.name,
           entries,
         },
       ],
     }))
+    onSavedDate?.(date)
     onDone()
   }
 
@@ -133,6 +140,7 @@ export function SessionScreen({
         <header className="page-header">
           <h1>{day.name}</h1>
         </header>
+        <LogDate date={date} today={today} onChange={setDate} />
 
         {hasRir && (
           <details className="card hint">
@@ -266,7 +274,7 @@ export function SessionScreen({
           </div>
         )}
         <BottomActions onBack={onDone}>
-          <button className="primary" disabled={setCount === 0} onClick={save}>
+          <button className="primary" disabled={setCount === 0 || !validDate} onClick={save}>
             {setCount === 0 ? 'Enter reps to log sets' : `Finish workout (${setCount} sets)`}
           </button>
         </BottomActions>

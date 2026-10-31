@@ -14,6 +14,16 @@ export function addDays(key: string, n: number): string {
   return dateKey(new Date(y, m - 1, d + n))
 }
 
+export function isLogDate(key: string, today = dateKey()): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(key) || key > today) return false
+  const [y, m, d] = key.split('-').map(Number)
+  return y >= 1000 && dateKey(new Date(y, m - 1, d)) === key
+}
+
+export function newestSessions(sessions: Session[]): Session[] {
+  return [...sessions].reverse().sort((a, b) => b.date.localeCompare(a.date))
+}
+
 export function totalsFor(meals: Meal[], date: string) {
   return meals
     .filter((m) => m.date === date)
@@ -44,8 +54,8 @@ export function recentMeals(meals: Meal[], limit = 8): Meal[] {
 
 /** The plan you trained most recently (or the first plan) — what "Start workout" on Base opens. */
 export function quickStartPlan(routine: WorkoutDay[], sessions: Session[]): WorkoutDay | undefined {
-  for (let i = sessions.length - 1; i >= 0; i--) {
-    const day = routine.find((d) => d.id === sessions[i].dayId)
+  for (const session of newestSessions(sessions)) {
+    const day = routine.find((d) => d.id === session.dayId)
     if (day) return day
   }
   return routine[0]
@@ -99,8 +109,8 @@ export function workoutRuns(data: Pick<AppData, 'sessions' | 'checkIns'>): numbe
 
 /** Sets from the most recent session that included this exercise. */
 export function lastSets(sessions: Session[], exerciseId: string): SetLog[] | undefined {
-  for (let i = sessions.length - 1; i >= 0; i--) {
-    const e = sessions[i].entries.find((x) => x.exerciseId === exerciseId)
+  for (const session of newestSessions(sessions)) {
+    const e = session.entries.find((x) => x.exerciseId === exerciseId)
     if (e && e.sets.length) return e.sets
   }
   return undefined

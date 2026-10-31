@@ -31,6 +31,18 @@ body {
   margin: 0;
 }
 
+.log-date { margin-bottom: 1rem; }
+.log-date button { min-height: 44px; }
+.week button.week-day { background: none; padding: 0; min-height: 48px; }
+.week button.week-day[aria-pressed="true"] { outline: 1px solid var(--accent); border-radius: 8px; }
+.day-navigation > .row { gap: 0.5rem; }
+.day-navigation > .row button { min-width: 44px; min-height: 44px; }
+.day-navigation > .row span { text-align: center; }
+.day-navigation .week { margin-bottom: 0; }
+.day-navigation .week-day { min-width: 0; }
+.day-navigation .week-day .small { font-size: 0.7rem; }
+.day-navigation .week-day strong { font-size: 0.9rem; }
+
 .guide-button {
   display: inline-flex;
   align-items: center;

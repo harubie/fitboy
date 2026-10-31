@@ -20,7 +20,7 @@ describe('bottom navigation', () => {
     for (const screen of screens) {
       const html = renderToStaticMarkup(screen)
       expect(html.match(/← Back/g)).toHaveLength(1)
-      expect(html).toMatch(/<footer class="screen-footer">[\s\S]*← Back/)
+      expect(html).toMatch(/<footer class="screen-footer(?: [^"]+)?">[\s\S]*← Back/)
       expect(html.match(/<header[\s\S]*?<\/header>/)?.[0]).not.toContain('← Back')
     }
   })

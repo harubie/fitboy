@@ -1,5 +1,7 @@
 import { useState } from 'react'
-import { formatSets, lastSets, planStats } from '../logic'
+import { formatSets, isLogDate, lastSets, newestSessions, planStats } from '../logic'
+import { LogDate } from '../components/LogDate'
+import { useLogDate } from '../useLogDate'
 import type { Exercise, ScreenProps } from '../types'
 
 const shortDate = (key: string) => {
@@ -19,8 +21,10 @@ export function Workouts({
   onGuide: (exercise: Exercise) => void
 }) {
   const [openId, setOpenId] = useState<string | undefined>(data.routine.length === 1 ? data.routine[0].id : undefined)
+  const [editingId, setEditingId] = useState<string>()
+  const { date, setDate, today, validDate } = useLogDate()
   const unit = data.settings.unit
-  const history = [...data.sessions].reverse().slice(0, 20)
+  const history = newestSessions(data.sessions).slice(0, 20)
 
   return (
     <>
@@ -123,6 +127,18 @@ export function Workouts({
                     ✕
                   </button>
                 </div>
+                <button className="link" onClick={() => { setEditingId(s.id); setDate(s.date) }}>Change date</button>
+                {editingId === s.id && <>
+                  <LogDate date={date} today={today} onChange={setDate} />
+                  <div className="row gap">
+                    <button className="secondary grow" onClick={() => setEditingId(undefined)}>Cancel</button>
+                    <button className="primary grow" disabled={!validDate} onClick={() => {
+                      if (!isLogDate(date)) { alert('Choose a valid workout date on or before today.'); return }
+                      setData((d) => ({ ...d, sessions: d.sessions.map((session) => session.id === s.id ? { ...session, date } : session) }))
+                      setEditingId(undefined)
+                    }}>Save date</button>
+                  </div>
+                </>}
                 {s.entries
                   .filter((e) => e.sets.length)
                   .map((e) => (

@@ -11,6 +11,7 @@ import {
   streak,
   totalsFor,
   workoutRuns,
+  isLogDate,
 } from './logic'
 import type { Meal, Session, WorkoutDay } from './types'
 
@@ -40,6 +41,15 @@ describe('addDays', () => {
   it('crosses month and year boundaries', () => {
     expect(addDays('2026-01-31', 1)).toBe('2026-02-01')
     expect(addDays('2026-01-01', -1)).toBe('2025-12-31')
+  })
+
+  describe('isLogDate', () => {
+    it('accepts real local dates through today, not invalid or future dates', () => {
+      expect(isLogDate('2024-02-29', '2026-10-31')).toBe(true)
+      for (const date of ['', '2026-02-30', '2026-13-01', '2026-11-01', '2026-1-01']) {
+        expect(isLogDate(date, '2026-10-31')).toBe(false)
+      }
+    })
   })
 })
 
@@ -73,6 +83,9 @@ describe('quickStartPlan', () => {
   })
   it('ignores sessions for deleted plans', () => {
     expect(quickStartPlan(routine, [session('d1', 'b'), session('d2', 'gone')])?.id).toBe('b')
+  })
+  it('does not treat a newly entered backdated workout as the latest workout', () => {
+    expect(quickStartPlan(routine, [session('2026-10-30', 'c'), session('2026-10-20', 'a')])?.id).toBe('c')
   })
 })
 
@@ -121,6 +134,12 @@ describe('workoutRuns', () => {
 })
 
 describe('lastSets', () => {
+  it('uses the workout date rather than the order of entry', () => {
+    expect(lastSets([
+      session('2026-10-30', 'a', [{ weight: 60, reps: 8 }]),
+      session('2026-10-20', 'a', [{ weight: 20, reps: 10 }]),
+    ], 'bench')).toEqual([{ weight: 60, reps: 8 }])
+  })
   it('returns sets from the most recent session with that exercise', () => {
     const sessions = [session('d1', 'a', [{ weight: 60, reps: 8 }]), session('d2', 'a', [{ weight: 62.5, reps: 6 }])]
     expect(lastSets(sessions, 'bench')).toEqual([{ weight: 62.5, reps: 6 }])

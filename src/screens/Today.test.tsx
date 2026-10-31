@@ -30,7 +30,7 @@ it.each([
     expect(labels).toEqual(
       Array.from({ length: 7 }, (_, i) =>
         new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + i).toLocaleDateString(undefined, {
-          weekday: 'narrow',
+          weekday: 'short',
         }),
       ),
     )

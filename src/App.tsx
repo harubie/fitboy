@@ -15,9 +15,9 @@ import './App.css'
 
 type Tab = 'today' | 'workouts' | 'settings'
 type Overlay =
-  | { kind: 'addMeal' }
+  | { kind: 'addMeal'; date?: string }
   | { kind: 'monsters' }
-  | { kind: 'session'; dayId: string }
+  | { kind: 'session'; dayId: string; date?: string }
   | { kind: 'plan'; dayId?: string }
   | null
 
@@ -32,6 +32,7 @@ export default function App() {
   const [tab, setTab] = useState<Tab>('today')
   const [overlay, setOverlay] = useState<Overlay>(null)
   const [guide, setGuide] = useState<Exercise | null>(null)
+  const [dailyDate, setDailyDate] = useState<string>()
 
   // Make the Android back button close sub-screens instead of leaving the app.
   useEffect(() => {
@@ -48,14 +49,17 @@ export default function App() {
     setOverlay(o)
   }, [])
   const close = useCallback(() => history.back(), [])
-  const startWorkout = (dayId: string) => open({ kind: 'session', dayId })
+  const startWorkout = (dayId: string, date?: string) => {
+    if (date) setDailyDate(date)
+    open({ kind: 'session', dayId, date })
+  }
   const openGuide = (exercise: Exercise) => {
     history.pushState({ ...history.state, exerciseGuide: true }, '')
     setGuide(exercise)
   }
 
   const renderScreen = () => {
-    if (overlay?.kind === 'addMeal') return <AddMeal data={data} setData={setData} onDone={close} />
+    if (overlay?.kind === 'addMeal') return <AddMeal data={data} setData={setData} onDone={close} initialDate={overlay.date} onSavedDate={setDailyDate} />
     if (overlay?.kind === 'monsters') return <MonstersScreen data={data} setData={setData} onDone={close} />
     if (overlay?.kind === 'plan')
       return (
@@ -63,7 +67,7 @@ export default function App() {
       )
     if (overlay?.kind === 'session') {
       const day = data.routine.find((d) => d.id === overlay.dayId)
-      if (day) return <SessionScreen day={day} data={data} setData={setData} onDone={close} onGuide={openGuide} />
+      if (day) return <SessionScreen day={day} data={data} setData={setData} onDone={close} onGuide={openGuide} initialDate={overlay.date} onSavedDate={setDailyDate} />
     }
 
     return (
@@ -73,7 +77,9 @@ export default function App() {
             <Today
               data={data}
               setData={setData}
-              onAddMeal={() => open({ kind: 'addMeal' })}
+              initialDate={dailyDate}
+              onDateChange={setDailyDate}
+              onAddMeal={(date) => { setDailyDate(date); open({ kind: 'addMeal', date }) }}
               onStartWorkout={startWorkout}
               onOpenMonsters={() => open({ kind: 'monsters' })}
             />

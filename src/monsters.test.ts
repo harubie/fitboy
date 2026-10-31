@@ -20,6 +20,18 @@ const egg = (since: string): Monsters => ({
 })
 
 describe('reconcile', () => {
+  it('counts a newly backdated workout within the active period and reduces neglect after a backdated rest day', () => {
+    const roster = egg(addDays(today, -6))
+    const corrected = log({ [addDays(today, -3)]: 'workout', [addDays(today, -1)]: 'rest' })
+    const ms = reconcile(roster, corrected, today, first)
+    expect(monsterXp(ms.active, corrected, today)).toBe(1)
+    expect(neglectDays(ms.active, corrected, today)).toBe(1)
+    expect(currentForm(ms.active).id).toBe('hatchling')
+  })
+  it('does not award backdated workouts before activation to a new egg', () => {
+    const corrected = log({ [addDays(today, -1)]: 'workout' })
+    expect(monsterXp(egg(today).active, corrected, today)).toBe(0)
+  })
   it('evolves through each stage as workouts add up, along the tree', () => {
     const l = log(days(21))
     const ms = reconcile(egg(addDays(today, -20)), l, today, first)

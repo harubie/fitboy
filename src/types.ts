@@ -4,6 +4,20 @@ export type Meal = {
   name: string
   calories: number
   protein: number
+  estimated?: boolean
+  ingredients?: { foodId: string; name: string; amount: number; unit: FoodUnit }[]
+}
+
+export type FoodUnit = 'servings' | 'g' | 'tbsp' | 'tsp' | 'eggs' | 'scoops'
+export type SavedFood = {
+  id: string
+  name: string
+  unit: FoodUnit
+  serving: number
+  calories: number
+  protein: number
+  pinned: boolean
+  estimated?: boolean
 }
 
 export type Exercise = {
@@ -61,6 +75,7 @@ export type ScreenProps = {
 export type AppData = {
   settings: Settings
   meals: Meal[]
+  savedFoods?: SavedFood[]
   routine: WorkoutDay[]
   sessions: Session[]
   checkIns: Record<string, CheckIn>
