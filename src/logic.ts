@@ -74,6 +74,15 @@ export function quickStartPlan(routine: WorkoutDay[], sessions: Session[]): Work
   return routine[0]
 }
 
+export function moveWorkoutDay(routine: WorkoutDay[], id: string, to: number): WorkoutDay[] {
+  const from = routine.findIndex((day) => day.id === id)
+  if (from < 0 || !Number.isInteger(to) || to < 0 || to >= routine.length || from === to) return routine
+  const result = [...routine]
+  const [day] = result.splice(from, 1)
+  result.splice(to, 0, day)
+  return result
+}
+
 export function planStats(sessions: Session[], dayId: string): { count: number; last?: string } {
   let count = 0
   let last: string | undefined

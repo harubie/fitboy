@@ -14,8 +14,41 @@ import {
   isLogDate,
   displayDate,
   weekHeading,
+  moveWorkoutDay,
 } from './logic'
 import type { Meal, Session, WorkoutDay } from './types'
+
+describe('moveWorkoutDay', () => {
+  const days: WorkoutDay[] = ['Day 4', 'Day 2', 'Day 3'].map((name) => ({ id: name, name, exercises: [] }))
+
+  it('moves a day upward without modifying the original plans', () => {
+    const result = moveWorkoutDay(days, 'Day 2', 0)
+    expect(result.map((day) => day.name)).toEqual(['Day 2', 'Day 4', 'Day 3'])
+    expect(result[0]).toBe(days[1])
+    expect(days.map((day) => day.name)).toEqual(['Day 4', 'Day 2', 'Day 3'])
+  })
+
+  it('moves a day downward across multiple plans', () => {
+    expect(moveWorkoutDay(days, 'Day 4', 2).map((day) => day.name)).toEqual(['Day 2', 'Day 3', 'Day 4'])
+  })
+
+  it('leaves the order unchanged for the same day or a day removed during dragging', () => {
+    expect(moveWorkoutDay(days, 'Day 2', 1)).toBe(days)
+    expect(moveWorkoutDay(days, 'missing', 1)).toBe(days)
+    expect(moveWorkoutDay(days, 'Day 2', -1)).toBe(days)
+    expect(moveWorkoutDay(days, 'Day 2', 3)).toBe(days)
+    expect(moveWorkoutDay(days, 'Day 2', NaN)).toBe(days)
+  })
+
+  it('saves the final position after reversing drag direction, rather than the last crossed card', () => {
+    const down = moveWorkoutDay(days, 'Day 4', 2)
+    const reversed = moveWorkoutDay(down, 'Day 4', 1)
+    const position = reversed.findIndex((day) => day.id === 'Day 4')
+    expect(moveWorkoutDay(days, 'Day 4', position)).toEqual(reversed)
+    const original = moveWorkoutDay(reversed, 'Day 4', 0)
+    expect(moveWorkoutDay(days, 'Day 4', original.findIndex((day) => day.id === 'Day 4'))).toBe(days)
+  })
+})
 
 const meal = (date: string, name: string, calories: number, protein: number): Meal => ({
   id: name + date,

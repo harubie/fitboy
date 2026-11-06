@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { displayDate, formatSets, isLogDate, lastSets, newestSessions, planStats } from '../logic'
 import { LogDate } from '../components/LogDate'
 import { useLogDate } from '../useLogDate'
+import { usePlanReorder } from '../usePlanReorder'
 import type { Exercise, ScreenProps } from '../types'
 
 const shortDate = (key: string) => {
@@ -25,6 +26,8 @@ export function Workouts({
   const { date, setDate, today, validDate } = useLogDate()
   const unit = data.settings.unit
   const history = newestSessions(data.sessions).slice(0, 20)
+  const { listRef, days, draggingId, announcement, start: startReorder, keyboard: keyboardReorder } =
+    usePlanReorder(data.routine, setData)
 
   return (
     <>
@@ -39,70 +42,88 @@ export function Workouts({
         </section>
       )}
 
-      {data.routine.map((day) => {
-        const isOpen = openId === day.id
-        const stats = planStats(data.sessions, day.id)
-        return (
-          <section key={day.id} className="card">
-            <button className="row spread plain" onClick={() => setOpenId(isOpen ? undefined : day.id)}>
-              <div>
-                <h2>{day.name}</h2>
-                <div className="muted small">
-                  {day.exercises.length} exercise{day.exercises.length === 1 ? '' : 's'} ·{' '}
-                  {stats.last
-                    ? `Last done ${shortDate(stats.last)} · ${stats.count} session${stats.count === 1 ? '' : 's'}`
-                    : 'Not started yet'}
-                </div>
+      {data.routine.length > 1 && <p id="plan-reorder-help" className="muted small">
+        Hold and drag a handle to reorder days. With a keyboard, focus the handle and use Up or Down.
+      </p>}
+      <div className="visually-hidden" role="status">{announcement}</div>
+      <div ref={listRef}>
+        {days.map((day) => {
+          const isOpen = openId === day.id
+          const stats = planStats(data.sessions, day.id)
+          return (
+            <section key={day.id} data-plan-id={day.id}
+              className={`card workout-plan${draggingId === day.id ? ' dragging' : ''}`}>
+              <div className="row gap plan-heading">
+                {data.routine.length > 1 && <button type="button" className="plan-drag-handle"
+                  aria-label={`Reorder ${day.name}`} aria-describedby="plan-reorder-help"
+                  onPointerDown={(event) => startReorder(event, day.id)}
+                  onKeyDown={(event) => keyboardReorder(event, day.id)}>
+                  <svg width="20" height="24" viewBox="0 0 20 24" aria-hidden="true">
+                    {[6, 12, 18].map((y) => <g key={y}><circle cx="7" cy={y} r="1.5" /><circle cx="13" cy={y} r="1.5" /></g>)}
+                  </svg>
+                </button>}
+                <button className="row spread plain grow" aria-expanded={isOpen}
+                  onClick={() => setOpenId(isOpen ? undefined : day.id)}>
+                  <div>
+                    <h2>{day.name}</h2>
+                    <div className="muted small">
+                      {day.exercises.length} exercise{day.exercises.length === 1 ? '' : 's'} ·{' '}
+                      {stats.last
+                        ? `Last done ${shortDate(stats.last)} · ${stats.count} session${stats.count === 1 ? '' : 's'}`
+                        : 'Not started yet'}
+                    </div>
+                  </div>
+                  <span className="muted">{isOpen ? '▾' : '▸'}</span>
+                </button>
               </div>
-              <span className="muted">{isOpen ? '▾' : '▸'}</span>
-            </button>
-            {isOpen && (
-              <>
-                {day.note && <p className="muted small">{day.note}</p>}
-                <ul className="list">
-                  {day.exercises.map((ex) => {
-                    const last = lastSets(data.sessions, ex.id)
-                    return (
-                      <li key={ex.id}>
-                        <div className="row spread">
-                          <div className="exercise-name">
-                            <span>{ex.name}</span>
-                            <button
-                              className="guide-button"
-                              aria-label={`How to: ${ex.name}`}
-                              aria-haspopup="dialog"
-                              title={`How to: ${ex.name}`}
-                              onClick={() => onGuide(ex)}
-                            >
-                              <span aria-hidden="true">?</span>
-                            </button>
+              {isOpen && (
+                <>
+                  {day.note && <p className="muted small">{day.note}</p>}
+                  <ul className="list">
+                    {day.exercises.map((ex) => {
+                      const last = lastSets(data.sessions, ex.id)
+                      return (
+                        <li key={ex.id}>
+                          <div className="row spread">
+                            <div className="exercise-name">
+                              <span>{ex.name}</span>
+                              <button
+                                className="guide-button"
+                                aria-label={`How to: ${ex.name}`}
+                                aria-haspopup="dialog"
+                                title={`How to: ${ex.name}`}
+                                onClick={() => onGuide(ex)}
+                              >
+                                <span aria-hidden="true">?</span>
+                              </button>
+                            </div>
+                            <span className="muted small nowrap">
+                              {ex.sets} × {ex.reps}
+                              {ex.measurement === 'minutes' ? ' min' : ex.measurement === 'metres' ? ' m' : ex.timed ? 's' : ''}
+                            </span>
                           </div>
-                          <span className="muted small nowrap">
-                            {ex.sets} × {ex.reps}
-                            {ex.measurement === 'minutes' ? ' min' : ex.measurement === 'metres' ? ' m' : ex.timed ? 's' : ''}
-                          </span>
-                        </div>
-                        {ex.target && <div className="muted small">{ex.target}</div>}
-                        <div className="muted small">
-                          {last ? `Last: ${formatSets(last, unit, ex.timed, ex.measurement)}` : 'No history yet'}
-                        </div>
-                      </li>
-                    )
-                  })}
-                </ul>
-                <div className="plan-actions">
-                  <button className="secondary" onClick={() => onEdit(day.id)}>
-                    Edit
-                  </button>
-                  <button className="primary" onClick={() => onStart(day.id)}>
-                    Start
-                  </button>
-                </div>
-              </>
-            )}
-          </section>
-        )
-      })}
+                          {ex.target && <div className="muted small">{ex.target}</div>}
+                          <div className="muted small">
+                            {last ? `Last: ${formatSets(last, unit, ex.timed, ex.measurement)}` : 'No history yet'}
+                          </div>
+                        </li>
+                      )
+                    })}
+                  </ul>
+                  <div className="plan-actions">
+                    <button className="secondary" onClick={() => onEdit(day.id)}>
+                      Edit
+                    </button>
+                    <button className="primary" onClick={() => onStart(day.id)}>
+                      Start
+                    </button>
+                  </div>
+                </>
+              )}
+            </section>
+          )
+        })}
+      </div>
 
       {history.length > 0 && (
         <section className="card">
