@@ -1,8 +1,8 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import type { SavedFood } from '../types'
 
-export function FoodPortion({ food, initial, onAdd, onClose, onEdit }: {
-  food: SavedFood; initial: number; onAdd: (amount: number) => void; onClose: () => void; onEdit: () => void
+export function FoodPortion({ food, initial, onAdd, onClose, onEdit, onDelete }: {
+  food: SavedFood; initial: number; onAdd: (amount: number) => void; onClose: () => void; onEdit: () => void; onDelete: () => void
 }) {
   const dialog = useRef<HTMLDialogElement>(null)
   const titleId = useId()
@@ -56,6 +56,10 @@ export function FoodPortion({ food, initial, onAdd, onClose, onEdit }: {
         ? `${Math.round(calories)} kcal · ${Math.round(protein * 10) / 10} g protein`
         : 'Choose a positive amount that produces finite nutrition totals.'}</p>
       <button type="button" className="primary block" disabled={!valid} onClick={() => onAdd(value)}>Add to meal</button>
+      <div className="food-delete">
+        <p className="muted small">Remove this food from your reusable lists. Past meal logs will not be deleted.</p>
+        <button type="button" className="danger block" onClick={onDelete}>Delete food</button>
+      </div>
     </dialog>
   )
 }

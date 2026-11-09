@@ -10,6 +10,11 @@ export function nutritionNumber(input: string): number | undefined {
   return Number.isFinite(value) && value >= 0 ? value : undefined
 }
 
+export function kilojoulesToCalories(input: string): number | undefined {
+  const value = input.trim() ? nutritionNumber(input) : undefined
+  return value === undefined ? undefined : value / 4.184
+}
+
 export function isSavedFood(value: unknown): value is SavedFood {
   if (!value || typeof value !== 'object') return false
   const food = value as Record<string, unknown>
@@ -21,13 +26,27 @@ export function isSavedFood(value: unknown): value is SavedFood {
     && typeof food.protein === 'number' && Number.isFinite(food.protein) && food.protein >= 0
     && typeof food.pinned === 'boolean'
     && (food.estimated === undefined || typeof food.estimated === 'boolean')
+    && (food.deleted === undefined || typeof food.deleted === 'boolean')
+}
+
+export function recentFoodMeals(data: Pick<AppData, 'savedFoods' | 'meals'>, limit = 8) {
+  const deletedNames = new Set((data.savedFoods ?? []).filter((food) => food.deleted).map((food) => nameKey(food.name)))
+  return recentMeals(data.meals.filter((meal) => !deletedNames.has(nameKey(meal.name))), limit)
+}
+
+export function deleteFood(data: AppData, food: SavedFood): AppData {
+  // Keep a marker so historical totals cannot recreate a deleted library entry.
+  return { ...data, savedFoods: [
+    ...(data.savedFoods ?? []).filter((entry) => entry.id !== food.id),
+    { ...food, pinned: false, deleted: true },
+  ] }
 }
 
 /** Old meal totals are reusable as one serving, never inferred as per-ingredient nutrition. */
 export function foodCatalog(data: Pick<AppData, 'savedFoods' | 'meals'>): SavedFood[] {
   const saved = data.savedFoods ?? []
   const names = new Set(saved.map((food) => nameKey(food.name)))
-  return [...saved, ...recentMeals(data.meals, data.meals.length)
+  return [...saved.filter((food) => !food.deleted), ...recentFoodMeals(data, data.meals.length)
     .filter((meal) => !names.has(nameKey(meal.name)))
     .map((meal): SavedFood => ({
       id: `meal:${meal.id}`, name: meal.name, unit: 'servings', serving: 1,

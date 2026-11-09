@@ -1,12 +1,12 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { BottomActions } from '../components/BottomActions'
 import { FoodEditor } from '../components/FoodEditor'
 import { FoodPortion } from '../components/FoodPortion'
 import { LogDate } from '../components/LogDate'
 import { useLogDate } from '../useLogDate'
-import { foodCatalog, foodTotals, nutritionNumber } from '../foods'
+import { deleteFood, foodCatalog, foodTotals, nutritionNumber, recentFoodMeals } from '../foods'
 import type { Ingredient } from '../foods'
-import { displayDate, isLogDate, recentMeals, uid } from '../logic'
+import { displayDate, isLogDate, uid } from '../logic'
 import type { Meal, SavedFood, ScreenProps } from '../types'
 import '../food-logging.css'
 
@@ -27,11 +27,17 @@ export function AddMeal({ data, setData, onDone, initialDate, onSavedDate }: Scr
   const [selected, setSelected] = useState<SavedFood>()
   const [editing, setEditing] = useState<{ food?: SavedFood }>()
   const [error, setError] = useState('')
+  const [deletionMessage, setDeletionMessage] = useState('')
+  const foodHeading = useRef<HTMLHeadingElement>(null)
   const catalog = foodCatalog(data)
-  const recent = recentMeals(data.meals)
+  const recent = recentFoodMeals(data)
+  useEffect(() => {
+    if (deletionMessage) foodHeading.current?.focus()
+  }, [deletionMessage])
   const foodIdsByName = new Map(catalog.map((food) => [food.name.trim().toLowerCase(), food.id]))
   const recentIds = [...new Set([...data.meals].reverse().flatMap((meal) =>
-    meal.ingredients?.map((item) => item.foodId) ?? [foodIdsByName.get(meal.name.trim().toLowerCase()) ?? '']))].slice(0, 8)
+    meal.ingredients?.map((item) => item.foodId) ?? [foodIdsByName.get(meal.name.trim().toLowerCase()) ?? '']))]
+    .filter((id) => catalog.some((food) => food.id === id)).slice(0, 8)
   const list = tab === 'Recent' ? recentIds.flatMap((id) => catalog.filter((food) => food.id === id))
     : catalog.filter((food) => tab === 'All foods' || food.pinned)
   const matches = (showSearch ? catalog : list).filter((food) => food.name.toLowerCase().includes(search.trim().toLowerCase()))
@@ -43,7 +49,8 @@ export function AddMeal({ data, setData, onDone, initialDate, onSavedDate }: Scr
 
   const saveFood = (food: SavedFood) => {
     setData((d) => {
-      const saved = d.savedFoods ?? []
+      const saved = (d.savedFoods ?? []).filter((entry) =>
+        !entry.deleted || entry.name.trim().toLowerCase() !== food.name.trim().toLowerCase())
       return { ...d, savedFoods: saved.some((entry) => entry.id === food.id)
         ? saved.map((entry) => entry.id === food.id ? food : entry) : [...saved, food] }
     })
@@ -105,7 +112,7 @@ export function AddMeal({ data, setData, onDone, initialDate, onSavedDate }: Scr
         </form>
         {path === 'quick' && recent.length > 0 && <section className="card">
           <h2>Quick add</h2>
-          <p className="muted small">Tap to fill in a recent meal. Build a meal can access all previous foods.</p>
+          <p className="muted small">Tap to fill in a recent meal. Build a meal lets you combine reusable foods.</p>
           <div className="chips">{recent.map((meal) => <button type="button" key={meal.id} className="chip" onClick={() => {
             setName(meal.name); setCalories(String(meal.calories)); setProtein(String(meal.protein))
             setEstimated(meal.estimated ?? false); setError('')
@@ -113,7 +120,8 @@ export function AddMeal({ data, setData, onDone, initialDate, onSavedDate }: Scr
         </section>}
         {path === 'build' && <>
           <section className="card">
-            <h2>Your foods</h2>
+            <h2 ref={foodHeading} tabIndex={-1}>Your foods</h2>
+            {deletionMessage && <p className="muted small" role="status">{deletionMessage}</p>}
             <div className="seg-picker food-tabs" role="group" aria-label="Food list">
               {['Pinned', 'Recent', 'All foods'].map((label) => <button type="button" key={label}
                 className={tab === label ? 'active' : ''} aria-pressed={tab === label}
@@ -127,7 +135,7 @@ export function AddMeal({ data, setData, onDone, initialDate, onSavedDate }: Scr
             {showSearch && <label>Search all foods<input value={search} placeholder="Food name"
               onChange={(event) => setSearch(event.target.value)} /></label>}
             <div className="food-grid">{matches.map((food) => <div className="food-tile" key={food.id}>
-              <button type="button" className="secondary food-pick" onClick={() => setSelected(food)}>
+              <button type="button" className="secondary food-pick" onClick={() => { setDeletionMessage(''); setSelected(food) }}>
                 <strong>{food.name}</strong><span className="muted small">{food.serving} {food.unit}{food.estimated ? ' · estimated' : ''}</span>
               </button>
               <button type="button" className="icon food-pin" aria-label={`${food.pinned ? 'Unpin' : 'Pin'} ${food.name}`}
@@ -147,13 +155,15 @@ export function AddMeal({ data, setData, onDone, initialDate, onSavedDate }: Scr
               }
               saveFood(food)
               setItems(nextItems)
-              setEditing(undefined); setSelected(food); setTab('Pinned'); setError('')
+              setEditing(undefined); setDeletionMessage(''); setSelected(food); setTab('Pinned'); setError('')
             }} />}
           <section className="card">
             <h2>This meal</h2>
             {!items.length && <p className="muted small">Tap a food, choose an amount, then add another ingredient.</p>}
             {items.map((item) => <div className="row spread food-meal-item" key={item.food.id}>
-              <button type="button" className="secondary grow" onClick={() => setSelected(catalog.find((food) => food.id === item.food.id) ?? item.food)}>
+              <button type="button" className="secondary grow" onClick={() => {
+                setDeletionMessage(''); setSelected(catalog.find((food) => food.id === item.food.id) ?? item.food)
+              }}>
                 {item.food.name} · {item.amount} {item.food.unit} <span className="muted small">Edit</span>
               </button>
               <button type="button" className="icon" aria-label={`Remove ${item.food.name}`} onClick={() =>
@@ -176,6 +186,12 @@ export function AddMeal({ data, setData, onDone, initialDate, onSavedDate }: Scr
         initial={items.find((item) => item.food.id === selected.id)?.amount ?? selected.serving}
         onClose={() => setSelected(undefined)}
         onEdit={() => { setEditing({ food: selected }); setSelected(undefined) }}
+        onDelete={() => {
+          if (!confirm(`Delete "${selected.name}" from your foods? Past meal logs and ingredients already in this meal will stay unchanged.`)) return
+          setData((d) => deleteFood(d, selected))
+          setDeletionMessage(`Deleted ${selected.name} from your foods.`)
+          setSelected(undefined)
+        }}
         onAdd={(amount) => {
           const next = items.some((item) => item.food.id === selected.id)
             ? items.map((item) => item.food.id === selected.id ? { food: selected, amount } : item)

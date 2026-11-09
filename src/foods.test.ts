@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { foodCatalog, foodTotals, isSavedFood, nutritionNumber } from './foods'
+import { deleteFood, foodCatalog, foodTotals, isSavedFood, nutritionNumber, recentFoodMeals, kilojoulesToCalories } from './foods'
 import { defaultData } from './logic'
 import type { SavedFood } from './types'
 
@@ -21,6 +21,40 @@ describe('food catalog', () => {
     data.savedFoods = [egg]
     data.meals = [{ id: 'old', date: '2026-10-20', name: ' my EGGS ', calories: 210, protein: 18 }]
     expect(foodCatalog(data)).toEqual([egg])
+  })
+  it('deletes saved foods and keeps same-name history out of reusable lists without changing logs', () => {
+    const data = defaultData()
+    data.savedFoods = [egg, sauce]
+    data.meals = [
+      { id: 'old', date: '2026-10-20', name: ' my EGGS ', calories: 210, protein: 18 },
+      { id: 'new', date: '2026-10-21', name: 'My eggs', calories: 140, protein: 12 },
+    ]
+    const next = deleteFood(data, egg)
+    expect(foodCatalog(next)).toEqual([sauce])
+    expect(recentFoodMeals(next)).toEqual([])
+    expect(next.meals).toBe(data.meals)
+    expect(next.routine).toBe(data.routine)
+    expect(data.savedFoods).toEqual([egg, sauce])
+    expect(foodCatalog(JSON.parse(JSON.stringify(next)))).toEqual([sauce])
+  })
+  it('deletes historical meals from All foods without removing daily entries', () => {
+    const data = defaultData()
+    data.meals = [{ id: 'old', date: '2026-10-20', name: 'Beef bowl', calories: 700, protein: 45 }]
+    const next = deleteFood(data, foodCatalog(data)[0])
+    expect(foodCatalog(next)).toEqual([])
+    expect(recentFoodMeals(next)).toEqual([])
+    expect(next.meals).toEqual(data.meals)
+  })
+  it('fills recent slots with available foods rather than deleted entries', () => {
+    const data = defaultData()
+    data.meals = Array.from({ length: 10 }, (_, i) => ({
+      id: String(i), name: `Food ${i}`, date: '2026-10-30', calories: 100, protein: 10,
+    }))
+    const last = foodCatalog(data).find((food) => food.name === 'Food 9')!
+    const next = deleteFood(data, last)
+    expect(recentFoodMeals(next).map((meal) => meal.name)).toEqual([
+      'Food 8', 'Food 7', 'Food 6', 'Food 5', 'Food 4', 'Food 3', 'Food 2', 'Food 1',
+    ])
   })
 })
 
@@ -47,8 +81,23 @@ describe('nutrition validation', () => {
   })
   it('validates saved foods from backups', () => {
     expect(isSavedFood(egg)).toBe(true)
-    for (const food of [null, { ...egg, serving: 0 }, { ...egg, unit: 'unknown' }, { ...egg, protein: -1 }, { ...egg, name: ' ' }]) {
+    expect(isSavedFood({ ...egg, deleted: true })).toBe(true)
+    for (const food of [null, { ...egg, serving: 0 }, { ...egg, unit: 'unknown' }, { ...egg, protein: -1 }, { ...egg, name: ' ' }, { ...egg, deleted: 'yes' }]) {
       expect(isSavedFood(food)).toBe(false)
+    }
+  })
+})
+
+describe('kilojoules to food calories', () => {
+  it('uses 4.184 kJ per kcal without rounding the calculation', () => {
+    expect(kilojoulesToCalories('418.4')).toBeCloseTo(100)
+    expect(kilojoulesToCalories('2000')).toBeCloseTo(478.011472)
+    expect(kilojoulesToCalories('0')).toBe(0)
+    expect(kilojoulesToCalories('4.184')).toBe(1)
+  })
+  it('does not present blank, negative or non-finite input as a conversion', () => {
+    for (const input of ['', ' ', '-1', 'Infinity', 'NaN', 'abc', '1e309']) {
+      expect(kilojoulesToCalories(input)).toBeUndefined()
     }
   })
 })

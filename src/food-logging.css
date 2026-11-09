@@ -25,3 +25,4 @@
 .food-shortcuts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.5rem; margin-bottom: 1rem; }
 .food-shortcuts button { padding: 0.5rem 0.25rem; }
 .food-portion-total { text-align: center; font-weight: 600; }
+.food-delete { margin-top: 1.5rem; border-top: 1px solid var(--border); }

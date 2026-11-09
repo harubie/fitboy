@@ -18,6 +18,7 @@ export type SavedFood = {
   protein: number
   pinned: boolean
   estimated?: boolean
+  deleted?: boolean
 }
 
 export type Exercise = {

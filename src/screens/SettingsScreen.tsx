@@ -1,7 +1,8 @@
+import { useState } from 'react'
 import { defaultData } from '../logic'
 import { loadData, STORAGE_KEY } from '../store'
 import { Meters } from '../components/Meters'
-import { isSavedFood } from '../foods'
+import { isSavedFood, kilojoulesToCalories } from '../foods'
 import type { AppData, MeterStyle, ScreenProps } from '../types'
 
 const METER_STYLES: [MeterStyle, string][] = [
@@ -11,6 +12,9 @@ const METER_STYLES: [MeterStyle, string][] = [
 ]
 
 export function SettingsScreen({ data, setData }: ScreenProps) {
+  const [kilojoules, setKilojoules] = useState('')
+  const convertedCalories = kilojoulesToCalories(kilojoules)
+  const invalidKilojoules = kilojoules.trim() !== '' && convertedCalories === undefined
   const setSettings = (patch: Partial<AppData['settings']>) =>
     setData((d) => ({ ...d, settings: { ...d.settings, ...patch } }))
 
@@ -72,6 +76,21 @@ export function SettingsScreen({ data, setData }: ScreenProps) {
             <option value="lb">lb</option>
           </select>
         </label>
+      </section>
+
+      <section className="card form">
+        <h2>kJ to calories</h2>
+        <p className="muted small">Convert energy from a food label. 1 kcal = 4.184 kJ. This does not change your goals or log food.</p>
+        <label htmlFor="energy-kj">Kilojoules (kJ)</label>
+        <input id="energy-kj" type="number" inputMode="decimal" min="0" step="any"
+          value={kilojoules} onChange={(event) => setKilojoules(event.target.value)}
+          aria-invalid={invalidKilojoules} aria-describedby={invalidKilojoules ? 'energy-error' : undefined}
+          placeholder="e.g. 2000" />
+        <label htmlFor="energy-kcal">Calories (kcal)</label>
+        <output id="energy-kcal" htmlFor="energy-kj" aria-live="polite">
+          {convertedCalories === undefined ? '—' : `${Number(convertedCalories.toFixed(1))} kcal`}
+        </output>
+        {invalidKilojoules && <p id="energy-error" className="error" role="alert">Enter a finite, non-negative kJ value.</p>}
       </section>
 
       <section className="card">

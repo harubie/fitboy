@@ -23,6 +23,14 @@ it('round-trips reusable servings, pins and estimated meals', () => {
   expect(loadData()).toEqual(data)
 })
 
+it('preserves deleted foods across storage reloads', () => {
+  const data = { ...defaultData(), savedFoods: [{
+    id: 'old', name: 'Old meal', serving: 1, unit: 'servings', calories: 600, protein: 40, pinned: false, deleted: true,
+  }] }
+  vi.stubGlobal('localStorage', { getItem: () => JSON.stringify(data) })
+  expect(loadData().savedFoods).toEqual(data.savedFoods)
+})
+
 it('reports an invalid library without dropping meal or workout history', () => {
   const data = { ...defaultData(), savedFoods: [{ serving: 0 }] }
   vi.stubGlobal('localStorage', { getItem: () => JSON.stringify(data) })

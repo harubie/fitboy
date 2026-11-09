@@ -4,6 +4,7 @@ import { defaultData } from '../logic'
 import { AddMeal } from './AddMeal'
 import { SessionScreen } from './SessionScreen'
 import { Workouts } from './Workouts'
+import { FoodPortion } from '../components/FoodPortion'
 
 it('offers both food paths and keeps calories first without fabricated food values', () => {
   const html = renderToStaticMarkup(<AddMeal data={defaultData()} setData={() => {}} onDone={() => {}} />)
@@ -12,6 +13,14 @@ it('offers both food paths and keeps calories first without fabricated food valu
   expect(html).toContain('These numbers are an estimate')
   expect(html.indexOf('Calories<input')).toBeLessThan(html.indexOf('Protein (g)<input'))
   expect(html).not.toContain('70 kcal')
+})
+
+it('offers deleting a reusable food from its portion picker with history protection explained', () => {
+  const food = { id: 'bowl', name: 'Beef bowl', serving: 1, unit: 'servings' as const, calories: 600, protein: 40, pinned: true }
+  const html = renderToStaticMarkup(<FoodPortion food={food} initial={1} onAdd={() => {}}
+    onClose={() => {}} onEdit={() => {}} onDelete={() => {}} />)
+  expect(html).toContain('Delete food')
+  expect(html).toContain('Past meal logs will not be deleted.')
 })
 
 it('retains the selected backdate in food and session forms', () => {
