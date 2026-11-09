@@ -929,14 +929,14 @@ textarea:focus {
 
 .companion-hero .companion-link {
   flex-direction: column;
-  gap: 0.75rem;
-  padding: 1rem 0 0.25rem;
+  gap: 0.5rem;
+  padding: 0.5rem 0 0;
   text-align: center;
 }
 
 .companion-hero .pet-screen {
-  width: 128px;
-  height: 128px;
+  width: 96px;
+  height: 96px;
   padding: 0;
   background: none;
   box-shadow: none;
@@ -947,7 +947,7 @@ textarea:focus {
 }
 
 .companion-hero .companion-copy {
-  gap: 0.5rem;
+  gap: 0.25rem;
 }
 
 .companion-hero .companion-copy > strong {
