@@ -66,10 +66,20 @@ body {
 
 .log-date { margin-bottom: 1rem; }
 .log-date button { min-height: 44px; }
-.week button.week-day { background: none; padding: 0; min-height: 48px; }
-.week button.week-day[aria-pressed="true"] { outline: 1px solid var(--accent); border-radius: 8px; }
+.day-navigation { margin-bottom: 1.25rem; }
+.week button.week-day {
+  background: none;
+  padding: 0.5rem 0;
+  min-height: 72px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+}
+.week button.week-day[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: #14251c;
+}
 .day-navigation > .row { gap: 0.5rem; }
-.day-navigation > .row button { min-width: 44px; min-height: 44px; }
+.day-navigation > .row button { min-width: 44px; min-height: 44px; padding: 0.5rem; background: none; }
 .day-navigation > .row span { text-align: center; }
 .day-navigation .week { margin-bottom: 0; }
 .day-navigation .week-day { min-width: 0; }
@@ -996,28 +1006,19 @@ textarea:focus {
 }
 
 .dot {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: 2px solid var(--border);
+  width: 16px;
+  height: 16px;
   display: grid;
   place-items: center;
   font-weight: 700;
-  font-size: 0.9rem;
-}
-
-.week-day.today .dot {
-  border-color: var(--muted);
+  font-size: 0.7rem;
 }
 
 .dot.workout {
-  background: var(--accent-2);
-  border-color: var(--accent-2);
-  color: #04130a;
+  color: var(--accent);
 }
 
 .dot.rest {
-  background: var(--border);
   color: var(--muted);
 }
 

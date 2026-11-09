@@ -88,6 +88,8 @@ it('puts the companion before nutrition and keeps a single floating food action'
   expect(html.indexOf('Your companion')).toBeLessThan(html.indexOf('aria-label="Protein"'))
   expect(html.indexOf('aria-label="Protein"')).toBeLessThan(html.indexOf('Workout and check-in'))
   expect(html).toContain('class="card companion-card companion-hero"')
+  expect(html).toContain('class="day-navigation" aria-label="Choose a day"')
+  expect(html).not.toContain('class="card day-navigation"')
   expect(html.match(/aria-label="Add meal"/g)).toHaveLength(1)
   expect(html).toMatch(/<button class="fab" aria-label="Add meal">\+<\/button>/)
 })

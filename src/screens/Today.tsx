@@ -59,7 +59,7 @@ export function Today({ data, setData, onAddMeal, onStartWorkout, onOpenMonsters
           {now.toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'short' })}
         </span>
       </header>
-      <section className="card day-navigation" aria-label="Choose a day">
+      <section className="day-navigation" aria-label="Choose a day">
         <div className="row spread">
           <button className="secondary" aria-label="Previous week"
             disabled={!isLogDate(addDays(week[0], -7), today)}
