@@ -129,13 +129,17 @@ export function workoutRuns(data: Pick<AppData, 'sessions' | 'checkIns'>): numbe
   return runs
 }
 
-/** Sets from the most recent session that included this exercise. */
-export function lastSets(sessions: Session[], exerciseId: string): SetLog[] | undefined {
+export function lastExerciseLog(sessions: Session[], exerciseId: string): { date: string; sets: SetLog[] } | undefined {
   for (const session of newestSessions(sessions)) {
     const e = session.entries.find((x) => x.exerciseId === exerciseId)
-    if (e && e.sets.length) return e.sets
+    if (e && e.sets.length) return { date: session.date, sets: e.sets }
   }
   return undefined
+}
+
+/** Sets from the most recent session that included this exercise. */
+export function lastSets(sessions: Session[], exerciseId: string): SetLog[] | undefined {
+  return lastExerciseLog(sessions, exerciseId)?.sets
 }
 
 export function formatSets(sets: SetLog[], unit: string, timed = false, measurement?: Exercise['measurement']): string {

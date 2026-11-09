@@ -59,7 +59,7 @@ describe('workout templates', () => {
     expect(html).toContain('set 1 metres')
     expect(html).toContain('set 1 minutes')
     expect(html).toContain('Start 20 min timer')
-    expect(html).toContain('20kg×50m</span>')
+    expect(html).toContain('20kg×50m</strong>')
     const history = renderToStaticMarkup(<Workouts data={data} setData={() => {}} onStart={() => {}} onEdit={() => {}} onGuide={() => {}} />)
     expect(history).toContain('20kg×50m</div>')
     expect(history).toContain('25min')

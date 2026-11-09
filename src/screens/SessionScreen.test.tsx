@@ -20,16 +20,21 @@ function render(ex = exercise, sessions: Session[] = [], unit: 'kg' | 'lb' = 'kg
   )
 }
 
-it('shows each previous set beside its inputs using the latest completed exercise, not entry order', () => {
+it('shows a dated last-session snapshot above today using the latest completed exercise, not entry order', () => {
   const html = render(exercise, [
     history('2026-11-08', [{ weight: 60, reps: 10 }, { weight: 65, reps: 8 }]),
     history('2026-11-09', []),
     history('2026-11-01', [{ weight: 40, reps: 6 }]),
   ])
-  expect(html).toContain('>Previous</span>')
+  expect(html).toContain('Last session')
+  expect(html).toContain('dateTime="2026-11-08">08/11/2026</time>')
+  expect(html).toContain('aria-label="Squat last session"')
+  expect(html).toContain('>Today</h3>')
+  expect(html.indexOf('Last session')).toBeLessThan(html.indexOf('>Today</h3>'))
+  expect(html).not.toContain('>Previous</span>')
   expect(html).toContain('aria-label="Squat set 1 previous: 60kg×10 reps"')
   expect(html).toContain('aria-label="Squat set 2 previous: 65kg×8 reps"')
-  expect(html).toContain('aria-label="Squat set 3 previous: No previous set"')
+  expect(html).not.toContain('Squat set 3 previous:')
   expect(html).toMatch(/aria-label="Squat set 1 weight"[^>]*value="60"/)
   expect(html).toMatch(/aria-label="Squat set 1 reps"[^>]*value=""/)
   expect(html).toContain('Enter reps, time or distance to log sets')
@@ -38,7 +43,14 @@ it('shows each previous set beside its inputs using the latest completed exercis
 it('explains when an exercise has no previous history', () => {
   const html = render()
   expect(html).toContain('No previous sets yet.')
-  expect(html).toContain('aria-label="Squat set 1 previous: No previous set"')
+  expect(html).not.toContain('class="last-session"')
+})
+
+it('shows every historical set even when the current target has fewer sets', () => {
+  const sets = Array.from({ length: 6 }, (_, i) => ({ weight: 40 + i, reps: 10 - i }))
+  const html = render({ ...exercise, sets: 2 }, [history('2026-11-08', sets)])
+  expect(html).toContain('aria-label="Squat set 6 previous: 45kg×5 reps"')
+  expect(html).toMatch(/aria-label="Squat set 6 weight"[^>]*value="45"/)
 })
 
 it.each([

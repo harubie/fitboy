@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { BottomActions } from '../components/BottomActions'
-import { formatSets, isLogDate, lastSets, uid } from '../logic'
+import { displayDate, formatSets, isLogDate, lastExerciseLog, lastSets, uid } from '../logic'
 import { LogDate } from '../components/LogDate'
 import { useLogDate } from '../useLogDate'
 import type { Exercise, ScreenProps, WorkoutDay } from '../types'
@@ -165,7 +165,7 @@ export function SessionScreen({
         )}
 
         {day.exercises.map((ex) => {
-          const last = lastSets(data.sessions, ex.id)
+          const last = lastExerciseLog(data.sessions, ex.id)
           return (
             <section key={ex.id} className="card">
               <div className="row spread">
@@ -194,25 +194,33 @@ export function SessionScreen({
                   <strong>Form:</strong> {ex.cue}
                 </p>
               )}
-              <p className="muted small">
-                {last ? 'Previous sets shown below. Weight is prefilled; enter what you do today.' : 'No previous sets yet.'}
-              </p>
+              {last ? (
+                <section className="last-session" aria-label={`${ex.name} last session`}>
+                  <div className="last-session-heading">
+                    <h3>Last session</h3>
+                    <time className="muted small" dateTime={last.date}>{displayDate(last.date)}</time>
+                  </div>
+                  <ol className="last-session-sets">
+                    {last.sets.map((set, i) => {
+                      const text = `${formatSets([set], unit, ex.timed, ex.measurement)}${!ex.timed && !ex.measurement ? ' reps' : ''}`
+                      return (
+                        <li key={i} aria-label={`${ex.name} set ${i + 1} previous: ${text}`}>
+                          <span className="muted small">Set {i + 1}</span>
+                          <strong>{text}</strong>
+                        </li>
+                      )
+                    })}
+                  </ol>
+                </section>
+              ) : <p className="muted small">No previous sets yet.</p>}
+              <h3 className="session-today-heading">Today</h3>
               <div className="sets">
                 <span className="muted small">Set</span>
-                <span className="muted small">Previous</span>
                 <span className="muted small">Weight ({unit})</span>
                 <span className="muted small">{ex.measurement === 'minutes' ? 'Minutes' : ex.measurement === 'metres' ? 'Metres' : ex.timed ? 'Seconds' : 'Reps'}</span>
-                {rows[ex.id].map((r, i) => {
-                  const previous = last?.[i]
-                  const previousText = previous
-                    ? `${formatSets([previous], unit, ex.timed, ex.measurement)}${!ex.timed && !ex.measurement ? ' reps' : ''}`
-                    : 'No previous set'
-                  return (
+                {rows[ex.id].map((r, i) => (
                     <div key={i} className="set-row">
                       <span className="set-num">{i + 1}</span>
-                      <span className="previous-set small" aria-label={`${ex.name} set ${i + 1} previous: ${previousText}`}>
-                        {previous ? previousText : '—'}
-                      </span>
                       <input
                         inputMode="decimal"
                         aria-label={`${ex.name} set ${i + 1} weight`}
@@ -231,8 +239,7 @@ export function SessionScreen({
                         placeholder={r.prevReps ? String(r.prevReps) : '—'}
                       />
                     </div>
-                  )
-                })}
+                ))}
               </div>
               {ex.timed && (
                 <button className="primary block hold-btn" onClick={() => startHold(ex)}>
