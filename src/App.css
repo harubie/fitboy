@@ -952,7 +952,7 @@ textarea:focus {
 /* Session logging */
 .sets {
   display: grid;
-  grid-template-columns: 2.5rem 1fr 1fr;
+  grid-template-columns: 1.5rem minmax(0, 1.25fr) repeat(2, minmax(0, 1fr));
   gap: 0.5rem;
   align-items: center;
   margin: 0.5rem 0;
@@ -961,6 +961,9 @@ textarea:focus {
 .set-row {
   display: contents;
 }
+
+.previous-set { overflow-wrap: anywhere; }
+.sets input { min-width: 0; }
 
 .set-num {
   text-align: center;

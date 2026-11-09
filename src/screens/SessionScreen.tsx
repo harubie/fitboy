@@ -194,33 +194,45 @@ export function SessionScreen({
                   <strong>Form:</strong> {ex.cue}
                 </p>
               )}
-              {last && <p className="muted small">Last: {formatSets(last, unit, ex.timed, ex.measurement)}</p>}
+              <p className="muted small">
+                {last ? 'Previous sets shown below. Weight is prefilled; enter what you do today.' : 'No previous sets yet.'}
+              </p>
               <div className="sets">
                 <span className="muted small">Set</span>
+                <span className="muted small">Previous</span>
                 <span className="muted small">Weight ({unit})</span>
                 <span className="muted small">{ex.measurement === 'minutes' ? 'Minutes' : ex.measurement === 'metres' ? 'Metres' : ex.timed ? 'Seconds' : 'Reps'}</span>
-                {rows[ex.id].map((r, i) => (
-                  <div key={i} className="set-row">
-                    <span className="set-num">{i + 1}</span>
-                    <input
-                      inputMode="decimal"
-                      aria-label={`${ex.name} set ${i + 1} weight`}
-                      value={r.weight}
-                      onChange={(e) => update(ex.id, i, { weight: e.target.value })}
-                      placeholder={ex.timed ? 'BW' : '0'}
-                    />
-                    <input
-                      inputMode={ex.measurement ? 'decimal' : 'numeric'}
-                      aria-label={`${ex.name} set ${i + 1} ${ex.measurement ?? (ex.timed ? 'seconds' : 'reps')}`}
-                      value={r.reps}
-                      onChange={(e) => {
-                        if (!r.reps && e.target.value) startRest(ex)
-                        update(ex.id, i, { reps: e.target.value })
-                      }}
-                      placeholder={r.prevReps ? String(r.prevReps) : '—'}
-                    />
-                  </div>
-                ))}
+                {rows[ex.id].map((r, i) => {
+                  const previous = last?.[i]
+                  const previousText = previous
+                    ? `${formatSets([previous], unit, ex.timed, ex.measurement)}${!ex.timed && !ex.measurement ? ' reps' : ''}`
+                    : 'No previous set'
+                  return (
+                    <div key={i} className="set-row">
+                      <span className="set-num">{i + 1}</span>
+                      <span className="previous-set small" aria-label={`${ex.name} set ${i + 1} previous: ${previousText}`}>
+                        {previous ? previousText : '—'}
+                      </span>
+                      <input
+                        inputMode="decimal"
+                        aria-label={`${ex.name} set ${i + 1} weight`}
+                        value={r.weight}
+                        onChange={(e) => update(ex.id, i, { weight: e.target.value })}
+                        placeholder={ex.timed ? 'BW' : '0'}
+                      />
+                      <input
+                        inputMode={ex.measurement ? 'decimal' : 'numeric'}
+                        aria-label={`${ex.name} set ${i + 1} ${ex.measurement ?? (ex.timed ? 'seconds' : 'reps')}`}
+                        value={r.reps}
+                        onChange={(e) => {
+                          if (!r.reps && e.target.value) startRest(ex)
+                          update(ex.id, i, { reps: e.target.value })
+                        }}
+                        placeholder={r.prevReps ? String(r.prevReps) : '—'}
+                      />
+                    </div>
+                  )
+                })}
               </div>
               {ex.timed && (
                 <button className="primary block hold-btn" onClick={() => startHold(ex)}>
