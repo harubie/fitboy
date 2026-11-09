@@ -65,7 +65,7 @@ it('labels the compact destructive button clearly for assistive technology', () 
   expect(html).not.toContain('Reset everything')
 })
 
-it('keeps monster details and star progress in the Lair instead of the compact home card', () => {
+it('keeps monster details and star progress in the Lair instead of the home hero', () => {
   const data = defaultData()
   data.monsters = initialMonsters(data, dateKey())
   const home = renderToStaticMarkup(
@@ -77,6 +77,39 @@ it('keeps monster details and star progress in the Lair instead of the compact h
   expect(lair).toContain('What are stars?')
   expect(lair).toContain('workouts to next star')
   expect(lair).toContain('Rest days keep it warm')
+})
+
+it('puts the companion before nutrition and keeps a single floating food action', () => {
+  const data = defaultData()
+  data.monsters = initialMonsters(data, dateKey())
+  const html = renderToStaticMarkup(
+    <Today data={data} setData={() => {}} onAddMeal={() => {}} onStartWorkout={() => {}} onOpenMonsters={() => {}} />,
+  )
+  expect(html.indexOf('Your companion')).toBeLessThan(html.indexOf('aria-label="Protein"'))
+  expect(html.indexOf('aria-label="Protein"')).toBeLessThan(html.indexOf('Workout and check-in'))
+  expect(html).toContain('class="card companion-card companion-hero"')
+  expect(html.match(/aria-label="Add meal"/g)).toHaveLength(1)
+  expect(html).toMatch(/<button class="fab" aria-label="Add meal">\+<\/button>/)
+})
+
+it.each(['pixel', 'bars', 'classic'] as const)('preserves %s meters and the selected past day', (meterStyle) => {
+  const data = defaultData()
+  data.settings.meterStyle = meterStyle
+  data.meals = [
+    { id: 'past', date: '2026-01-01', name: 'Beef bowl', calories: 650, protein: 45 },
+    { id: 'today', date: dateKey(), name: 'Today food', calories: 400, protein: 30 },
+  ]
+  const html = renderToStaticMarkup(
+    <Today data={data} setData={() => {}} initialDate="2026-01-01"
+      onAddMeal={() => {}} onStartWorkout={() => {}} onOpenMonsters={() => {}} />,
+  )
+  expect(html).toContain('Daily log')
+  expect(html).toContain('Beef bowl')
+  expect(html).not.toContain('Today food')
+  expect(html).toContain('aria-label="Protein" aria-valuenow="45"')
+  expect(html).toContain(meterStyle === 'bars' ? 'class="stats"' : 'class="gauges"')
+  expect(html).toContain('aria-label="Add meal"')
+  expect(html).toContain('Previous week')
 })
 
 it('keeps rest-day feedback and the no-plan state available', () => {

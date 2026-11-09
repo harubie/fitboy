@@ -52,7 +52,7 @@ export function Today({ data, setData, onAddMeal, onStartWorkout, onOpenMonsters
   }
 
   return (
-    <>
+    <div className="base-page">
       <header className="page-header">
         <h1>{date === today ? 'Today' : 'Daily log'}</h1>
         <span className="muted">
@@ -85,15 +85,13 @@ export function Today({ data, setData, onAddMeal, onStartWorkout, onOpenMonsters
         </div>
       </section>
 
-      <section className="card">
-        <Meters
-          style={data.settings.meterStyle}
-          protein={{ value: totals.protein, goal: data.settings.proteinGoal }}
-          calories={{ value: totals.calories, goal: data.settings.calorieGoal }}
-        />
-      </section>
-
-      <section className="card companion-card" aria-label="Your companion">
+      <section className="card companion-card companion-hero" aria-label="Your companion">
+        <div className="companion-meta">
+          <span>Your companion</span>
+          <span className="workout-streak">
+            <Icon name="flame" /> {currentStreak > 0 ? `${currentStreak} day streak` : 'Start your streak!'}
+          </span>
+        </div>
         {monster && (
           <Pet
             monster={monster}
@@ -107,12 +105,17 @@ export function Today({ data, setData, onAddMeal, onStartWorkout, onOpenMonsters
         )}
       </section>
 
+      <section className="card base-nutrition" aria-label="Daily nutrition">
+        <Meters
+          style={data.settings.meterStyle}
+          protein={{ value: totals.protein, goal: data.settings.proteinGoal }}
+          calories={{ value: totals.calories, goal: data.settings.calorieGoal }}
+        />
+      </section>
+
       <section className="card" aria-label="Workout and check-in">
         <div className="workout-heading">
           <h2>{status ? (date === today ? 'Today’s activity' : 'Activity') : 'Next workout'}</h2>
-          <span className="workout-streak">
-            <Icon name="flame" /> {currentStreak > 0 ? `${currentStreak} day streak` : 'Start your streak!'}
-          </span>
         </div>
         {!status && next && (
           <>
@@ -161,8 +164,11 @@ export function Today({ data, setData, onAddMeal, onStartWorkout, onOpenMonsters
         )}
       </section>
 
-      <section className="card">
-        <h2>Meals</h2>
+      <section className="card base-meals">
+        <div className="row spread">
+          <h2>Meals</h2>
+          <span className="muted small">{meals.length} logged</span>
+        </div>
         {meals.length === 0 && <p className="muted">Nothing logged yet — tap + to add.</p>}
         <ul className="list">
           {meals.map((m) => (
@@ -189,6 +195,6 @@ export function Today({ data, setData, onAddMeal, onStartWorkout, onOpenMonsters
       <button className="fab" aria-label="Add meal" disabled={!validDate} onClick={() => onAddMeal(date)}>
         +
       </button>
-    </>
+    </div>
   )
 }
