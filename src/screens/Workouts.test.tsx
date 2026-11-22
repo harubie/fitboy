@@ -21,3 +21,17 @@ it('does not offer reordering when there is only one workout day', () => {
   )
   expect(html).not.toContain('aria-label="Reorder ')
 })
+
+it('offers recovery for a draft even when its plan was deleted', () => {
+  const data = defaultData()
+  data.workoutDrafts = [{ day: data.routine[0], date: '2026-01-01', rows: {} }]
+  data.routine = []
+  const html = renderToStaticMarkup(
+    <Workouts data={data} setData={() => {}} onStart={() => {}} onEdit={() => {}} onGuide={() => {}} />,
+  )
+  expect(html).toContain('Unfinished workouts')
+  expect(html).toContain(data.workoutDrafts[0].day.name)
+  expect(html).toContain('Logging for 01/01/2026')
+  expect(html).toContain('>Resume</button>')
+  expect(html).toContain('>Discard</button>')
+})

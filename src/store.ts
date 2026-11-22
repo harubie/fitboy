@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { defaultData } from './logic'
 import { isSavedFood } from './foods'
 import type { AppData } from './types'
@@ -27,9 +27,17 @@ export function loadData(): AppData {
 
 export function useAppData() {
   const [data, setData] = useState<AppData>(loadData)
+  const storageError = useRef(false)
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+      storageError.current = false
+    } catch (error) {
+      console.error('Fitboy could not save data on this device.', error)
+      if (!storageError.current) alert('Could not save your data on this device. Keep the app open and free up storage or export a backup.')
+      storageError.current = true
+    }
   }, [data])
 
   useEffect(() => {

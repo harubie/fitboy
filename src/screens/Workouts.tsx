@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { displayDate, formatSets, isLogDate, lastSets, newestSessions, planStats } from '../logic'
+import { displayDate, formatSets, isLogDate, sharedExerciseLog, newestSessions, planStats } from '../logic'
 import { LogDate } from '../components/LogDate'
+import { WorkoutDrafts } from '../components/WorkoutDrafts'
 import { useLogDate } from '../useLogDate'
 import { usePlanReorder } from '../usePlanReorder'
 import type { Exercise, ScreenProps } from '../types'
@@ -34,6 +35,8 @@ export function Workouts({
       <header className="page-header">
         <h1>Dojo</h1>
       </header>
+
+      <WorkoutDrafts data={data} setData={setData} onResume={onStart} />
 
       {data.routine.length === 0 && (
         <section className="card">
@@ -81,7 +84,7 @@ export function Workouts({
                   {day.note && <p className="muted small">{day.note}</p>}
                   <ul className="list">
                     {day.exercises.map((ex) => {
-                      const last = lastSets(data.sessions, ex.id)
+                      const last = sharedExerciseLog(data.sessions, ex, data.routine)
                       return (
                         <li key={ex.id}>
                           <div className="row spread">
@@ -104,7 +107,7 @@ export function Workouts({
                           </div>
                           {ex.target && <div className="muted small">{ex.target}</div>}
                           <div className="muted small">
-                            {last ? `Last: ${formatSets(last, unit, ex.timed, ex.measurement)}` : 'No history yet'}
+                            {last ? `${last.heaviest ? 'Heaviest saved' : 'Last'}: ${formatSets(last.sets, unit, ex.timed, ex.measurement)} · ${last.dayName} · ${displayDate(last.date)}` : 'No history yet'}
                           </div>
                         </li>
                       )
@@ -115,7 +118,7 @@ export function Workouts({
                       Edit
                     </button>
                     <button className="primary" onClick={() => onStart(day.id)}>
-                      Start
+                      {data.workoutDrafts?.some((draft) => draft.day.id === day.id) ? 'Resume' : 'Start'}
                     </button>
                   </div>
                 </>

@@ -66,7 +66,8 @@ export default function App() {
         <PlanEditor key={overlay.dayId ?? 'new'} dayId={overlay.dayId} data={data} setData={setData} onDone={close} />
       )
     if (overlay?.kind === 'session') {
-      const day = data.routine.find((d) => d.id === overlay.dayId)
+      const day = data.workoutDrafts?.find((draft) => draft.day.id === overlay.dayId)?.day
+        ?? data.routine.find((d) => d.id === overlay.dayId)
       if (day) return <SessionScreen day={day} data={data} setData={setData} onDone={close} onGuide={openGuide} initialDate={overlay.date} onSavedDate={setDailyDate} />
     }
 

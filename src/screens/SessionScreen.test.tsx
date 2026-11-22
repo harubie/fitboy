@@ -46,6 +46,45 @@ it('explains when an exercise has no previous history', () => {
   expect(html).not.toContain('class="last-session"')
 })
 
+it('restores an unfinished workout including its date and partially entered sets', () => {
+  const data = defaultData()
+  const day = { id: 'legs', name: 'Legs', exercises: [exercise] }
+  data.workoutDrafts = [{
+    day, date: '2026-01-01',
+    rows: { squat: [{ weight: '62.5', reps: '8' }, { weight: '65', reps: '' }] },
+  }]
+  const html = renderToStaticMarkup(
+    <SessionScreen day={day} data={data} setData={() => {}} onDone={() => {}} onGuide={() => {}} />,
+  )
+  expect(html).toContain('Logging for 01/01/2026')
+  expect(html).toMatch(/aria-label="Squat set 1 weight"[^>]*value="62.5"/)
+  expect(html).toMatch(/aria-label="Squat set 1 reps"[^>]*value="8"/)
+  expect(html).toMatch(/aria-label="Squat set 2 weight"[^>]*value="65"/)
+  expect(html).toContain('Finish workout (1 sets)')
+})
+
+it('shows and prefills the heaviest saved shared exercise with its source plan', () => {
+  const data = defaultData()
+  const other = { ...exercise, id: 'squat-other', name: ' SQUAT ' }
+  const day = { id: 'legs', name: 'Legs', exercises: [exercise] }
+  data.routine = [day, { id: 'other', name: 'Other plan', exercises: [other] }]
+  data.sessions = [
+    { ...history('2026-01-01', [{ weight: 80, reps: 6 }, { weight: 70, reps: 8 }]),
+      dayId: 'other', dayName: 'Other plan',
+      entries: [{ exerciseId: other.id, exerciseName: other.name, sets: [{ weight: 80, reps: 6 }, { weight: 70, reps: 8 }] }] },
+    history('2026-02-01', [{ weight: 60, reps: 10 }]),
+  ]
+  const html = renderToStaticMarkup(
+    <SessionScreen day={day} data={data} setData={() => {}} onDone={() => {}} onGuide={() => {}} />,
+  )
+  expect(html).toContain('Heaviest saved session')
+  expect(html).toContain('Other plan')
+  expect(html).toContain('dateTime="2026-01-01">01/01/2026</time>')
+  expect(html).toMatch(/aria-label="Squat set 1 weight"[^>]*value="80"/)
+  expect(html).toMatch(/aria-label="Squat set 2 weight"[^>]*value="70"/)
+  expect(html).toMatch(/aria-label="Squat set 1 reps"[^>]*value=""/)
+})
+
 it('shows every historical set even when the current target has fewer sets', () => {
   const sets = Array.from({ length: 6 }, (_, i) => ({ weight: 40 + i, reps: 10 - i }))
   const html = render({ ...exercise, sets: 2 }, [history('2026-11-08', sets)])

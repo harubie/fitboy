@@ -142,6 +142,37 @@ export function lastSets(sessions: Session[], exerciseId: string): SetLog[] | un
   return lastExerciseLog(sessions, exerciseId)?.sets
 }
 
+export function sharedExerciseLog(sessions: Session[], exercise: Exercise, routine: WorkoutDay[]) {
+  const normalize = (name: string) => name.trim().replace(/\s+/g, ' ').toLowerCase()
+  const name = normalize(exercise.name)
+  const compatible = (other: { timed?: boolean; measurement?: Exercise['measurement'] }) =>
+    Boolean(other.timed) === Boolean(exercise.timed) && other.measurement === exercise.measurement
+  const ids = new Set([exercise.id])
+  for (const day of routine) {
+    for (const ex of day.exercises) {
+      if (normalize(ex.name) === name && compatible(ex)) ids.add(ex.id)
+    }
+  }
+
+  const matches = newestSessions(sessions).flatMap((session) =>
+    session.entries
+      .filter((entry) => entry.sets.length > 0 && (
+        entry.exerciseId === exercise.id || (normalize(entry.exerciseName) === name && compatible(entry))
+      ))
+      .map((entry) => ({ session, entry })),
+  )
+  for (const { entry } of matches) ids.add(entry.exerciseId)
+  const recent = matches.find(({ session }) => session.sharedExerciseHistory)
+  const heaviest = !recent && ids.size > 1
+  const chosen = recent ?? (heaviest
+    ? matches.reduce<(typeof matches)[number] | undefined>((best, match) =>
+      !best || Math.max(...match.entry.sets.map((set) => set.weight)) > Math.max(...best.entry.sets.map((set) => set.weight))
+        ? match : best, undefined)
+    : matches[0])
+  if (!chosen) return undefined
+  return { date: chosen.session.date, dayName: chosen.session.dayName, sets: chosen.entry.sets, heaviest }
+}
+
 export function formatSets(sets: SetLog[], unit: string, timed = false, measurement?: Exercise['measurement']): string {
   return sets
     .map((s) => {

@@ -15,6 +15,7 @@ import {
   displayDate,
   weekHeading,
   moveWorkoutDay,
+  sharedExerciseLog,
 } from './logic'
 import type { Meal, Session, WorkoutDay } from './types'
 
@@ -185,6 +186,66 @@ describe('lastSets', () => {
       session('2026-10-30', 'a', [{ weight: 60, reps: 8 }]),
       session('2026-10-20', 'a', [{ weight: 20, reps: 10 }]),
     ], 'bench')).toEqual([{ weight: 60, reps: 8 }])
+  })
+
+  describe('sharedExerciseLog', () => {
+    const squat = { id: 'squat-a', name: 'Cable Crunch', sets: 2, reps: '10' }
+    const other = { ...squat, id: 'squat-b', name: '  cable   crunch ' }
+    const plans = [
+      { id: 'a', name: 'A', exercises: [squat] },
+      { id: 'b', name: 'B', exercises: [other] },
+    ]
+    const log = (id: string, date: string, exerciseId: string, name: string, weights: number[]): Session => ({
+      id, date, dayId: id, dayName: `Plan ${id}`,
+      entries: [{ exerciseId, exerciseName: name, sets: weights.map((weight) => ({ weight, reps: 10 })) }],
+    })
+
+    it('initially selects the heaviest saved session for matching names without changing its sets', () => {
+      const sessions = [
+        log('old', '2026-01-01', 'squat-a', 'Cable Crunch', [40, 60]),
+        log('new', '2026-02-01', 'squat-b', 'cable crunch', [50, 45]),
+      ]
+      expect(sharedExerciseLog(sessions, squat, plans)).toEqual({
+        date: '2026-01-01', dayName: 'Plan old', sets: sessions[0].entries[0].sets, heaviest: true,
+      })
+      expect(sharedExerciseLog(sessions, other, plans)?.sets).toEqual(sessions[0].entries[0].sets)
+    })
+
+    it('uses the latest newly completed workout even when its weight is lighter', () => {
+      const sessions = [
+        log('old', '2026-01-01', 'squat-a', 'Cable Crunch', [60]),
+        { ...log('new', '2026-02-01', 'squat-b', 'Cable Crunch', [50]), sharedExerciseHistory: true },
+      ]
+      expect(sharedExerciseLog(sessions, squat, plans)).toMatchObject({
+        date: '2026-02-01', dayName: 'Plan new', sets: [{ weight: 50, reps: 10 }], heaviest: false,
+      })
+    })
+
+    it('uses workout dates and then entry order to break ties', () => {
+      const old = log('old', '2026-01-01', 'squat-a', 'Cable Crunch', [60])
+      const newest = log('new', '2026-02-01', 'squat-b', 'Cable Crunch', [60])
+      expect(sharedExerciseLog([newest, old], squat, plans)?.dayName).toBe('Plan new')
+      const first = { ...old, date: '2026-03-01', sharedExerciseHistory: true }
+      const second = { ...newest, date: '2026-03-01', sharedExerciseHistory: true }
+      expect(sharedExerciseLog([first, second], squat, plans)?.dayName).toBe('Plan new')
+    })
+
+    it('keeps ordinary single-exercise history sorted by date and ignores unrelated names', () => {
+      const sessions = [
+        log('old', '2026-01-01', 'squat-a', 'Cable Crunch', [60]),
+        log('new', '2026-02-01', 'squat-a', 'Cable Crunch', [40]),
+        log('other', '2026-03-01', 'other', 'Cable Fly', [100]),
+      ]
+      expect(sharedExerciseLog(sessions, squat, [plans[0]])?.sets).toEqual([{ weight: 40, reps: 10 }])
+    })
+
+    it('does not combine different measurement types or unfinished sets', () => {
+      const incompatible: Session = {
+        ...log('timed', '2026-03-01', 'other', 'Cable Crunch', [100]),
+        entries: [{ exerciseId: 'other', exerciseName: 'Cable Crunch', measurement: 'minutes', sets: [{ weight: 100, reps: 10 }] }],
+      }
+      expect(sharedExerciseLog([incompatible, log('empty', '2026-04-01', 'squat-b', 'Cable Crunch', [])], squat, plans)).toBeUndefined()
+    })
   })
   it('returns sets from the most recent session with that exercise', () => {
     const sessions = [session('d1', 'a', [{ weight: 60, reps: 8 }]), session('d2', 'a', [{ weight: 62.5, reps: 6 }])]

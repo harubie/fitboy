@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fitboy timer mockup</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #101216; color: #eef0f4; font-family: system-ui, sans-serif; }
+    .page { max-width: 930px; margin: auto; padding: 32px 20px 50px; }
+    h1 { font-size: 24px; margin: 0 0 8px; }
+    .intro, .caption { color: #a7afbf; line-height: 1.5; }
+    .intro { max-width: 700px; margin: 0 0 25px; }
+    .examples { display: flex; flex-wrap: wrap; gap: 30px; align-items: flex-start; }
+    .example { width: 360px; max-width: 100%; }
+    .caption { margin: 10px 0; font-size: 14px; }
+    .caption strong { color: #eef0f4; }
+    .phone { background: #0f1115; border: 5px solid #343943; border-radius: 30px; height: 696px; overflow: hidden; position: relative; box-shadow: 0 12px 30px #0006; }
+    .status { height: 37px; display: flex; justify-content: space-between; padding: 9px 18px; font-size: 12px; font-weight: 700; }
+    .workout { height: calc(100% - 37px); overflow: auto; padding: 54px 15px 20px; scrollbar-width: none; }
+    .workout h2 { font-size: 23px; margin: 0 0 14px; }
+    .date { background: #2a2e38; border-radius: 12px; text-align: center; padding: 12px; font-size: 13px; font-weight: 600; margin-bottom: 14px; }
+    .card { background: #1a1d24; border: 1px solid #2a2e38; border-radius: 16px; padding: 15px; margin-bottom: 14px; }
+    .card h3 { margin: 0 0 11px; font-size: 18px; }
+    .guide { color: #4ade80; border: 1px solid #4ade80; border-radius: 50%; display: inline-flex; width: 22px; height: 22px; align-items: center; justify-content: center; font-size: 13px; margin-left: 5px; }
+    .chip { display: inline-block; background: #2a2e38; border-radius: 20px; padding: 5px 9px; color: #cbd1dc; font-size: 11px; margin-right: 4px; }
+    .muted { color: #8b92a3; font-size: 12px; }
+    .small-title { font-size: 14px; margin: 19px 0 9px; }
+    .row { display: grid; grid-template-columns: 24px 1fr 1fr; gap: 8px; align-items: center; margin: 8px 0; }
+    .value { background: #11141a; border: 1px solid #363b47; border-radius: 9px; padding: 10px; height: 38px; font-size: 14px; }
+    .focused { border-color: #4ade80; box-shadow: 0 0 0 1px #4ade80; }
+    .sets-action { display: flex; gap: 8px; margin-top: 13px; }
+    .sets-action span { background: #2a2e38; flex: 1; text-align: center; border-radius: 10px; padding: 10px; font-size: 13px; }
+    .timer { position: absolute; z-index: 3; top: 39px; left: 16px; right: 16px; height: 54px; display: flex; gap: 8px; align-items: center; padding: 6px 9px 6px 12px; background: #202c26; border: 1px solid #42644c; border-radius: 13px; box-shadow: 0 7px 18px #0009; overflow: hidden; }
+    .timer::before { content: ''; position: absolute; inset: 0 35% 0 0; background: #4ade8015; }
+    .timer > * { position: relative; }
+    .timer-label { flex: 1; font-size: 13px; font-weight: 600; }
+    .timer-time { font-size: 20px; font-variant-numeric: tabular-nums; }
+    .timer-button { border: 0; border-radius: 9px; background: #343c3a; color: #eef0f4; padding: 9px 8px; font-weight: 600; font-size: 12px; }
+    .keyboard { position: absolute; z-index: 2; bottom: 0; left: 0; right: 0; background: #292d35; padding: 8px 9px 11px; border-top: 1px solid #4b505c; }
+    .keyboard-top { display: flex; justify-content: space-between; color: #b6bdc9; font-size: 12px; padding: 4px 8px 9px; }
+    .keys { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+    .key { height: 39px; background: #464c57; border-radius: 5px; display: grid; place-items: center; font-size: 18px; }
+    .keyboard .bar { width: 100px; height: 4px; border-radius: 4px; margin: 13px auto 0; background: #d3d6dd; }
+    .footer { position: absolute; bottom: 0; left: 0; right: 0; display: flex; gap: 8px; background: #0f1115ee; padding: 12px 15px 18px; }
+    .footer span { border-radius: 12px; padding: 13px; background: #2a2e38; font-weight: 700; font-size: 12px; text-align: center; }
+    .footer .finish { background: #22c55e; color: #04130a; flex: 1; }
+    @media (max-width: 420px) { .page { padding: 24px 14px; } .example { width: 100%; } }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <h1>Floating timer at the top</h1>
+    <p class="intro">A visual mockup of the same workout with and without the keypad. The timer floats in the same position while the workout scrolls underneath it.</p>
+    <div class="examples">
+      <section class="example">
+        <p class="caption"><strong>While entering a set</strong> · the keypad no longer covers the timer</p>
+        <div class="phone">
+          <div class="status"><span>9:41</span><span>◀ &nbsp; ▰ &nbsp; 100%</span></div>
+          <div class="workout">
+            <h2>90-Day Full Body</h2>
+            <div class="date">Logging for 23/11/2026 (today) ▾</div>
+            <div class="card">
+              <h3>Lat Pulldowns <span class="guide">?</span></h3>
+              <span class="chip">3 × 10–12 reps</span><span class="chip">Rest 90s</span>
+              <p class="muted">Back &amp; Biceps</p>
+              <h4 class="small-title">Today</h4>
+              <div class="row muted"><span>Set</span><span>Weight (kg)</span><span>Reps</span></div>
+              <div class="row"><span class="muted">1</span><span class="value">60</span><span class="value focused">8</span></div>
+              <div class="row"><span class="muted">2</span><span class="value">60</span><span class="value muted">—</span></div>
+              <div class="row"><span class="muted">3</span><span class="value">60</span><span class="value muted">—</span></div>
+              <div class="sets-action"><span>+ Set</span><span>− Set</span></div>
+            </div>
+            <div class="card"><h3>Dumbbell Bicep Curls <span class="guide">?</span></h3><span class="chip">3 × 10–12 reps</span></div>
+          </div>
+          <div class="timer"><span class="timer-label">Rest</span><strong class="timer-time">1:24</strong><button class="timer-button" type="button">+15s</button><button class="timer-button" type="button">Skip</button></div>
+          <div class="keyboard" aria-label="Illustration of the phone keypad">
+            <div class="keyboard-top"><span>123</span><span>✓</span></div>
+            <div class="keys"><div class="key">1</div><div class="key">2</div><div class="key">3</div><div class="key">4</div><div class="key">5</div><div class="key">6</div><div class="key">7</div><div class="key">8</div><div class="key">9</div><div class="key">.</div><div class="key">0</div><div class="key">⌫</div></div>
+            <div class="bar"></div>
+          </div>
+        </div>
+      </section>
+      <section class="example">
+        <p class="caption"><strong>With keypad closed</strong> · timer stays pinned while scrolling</p>
+        <div class="phone">
+          <div class="status"><span>9:41</span><span>◀ &nbsp; ▰ &nbsp; 100%</span></div>
+          <div class="workout">
+            <h2>90-Day Full Body</h2>
+            <div class="date">Logging for 23/11/2026 (today) ▾</div>
+            <div class="card">
+              <h3>Lat Pulldowns <span class="guide">?</span></h3>
+              <span class="chip">3 × 10–12 reps</span><span class="chip">Rest 90s</span>
+              <p class="muted">Back &amp; Biceps</p>
+              <h4 class="small-title">Today</h4>
+              <div class="row muted"><span>Set</span><span>Weight (kg)</span><span>Reps</span></div>
+              <div class="row"><span class="muted">1</span><span class="value">60</span><span class="value">8</span></div>
+              <div class="row"><span class="muted">2</span><span class="value">60</span><span class="value muted">—</span></div>
+              <div class="row"><span class="muted">3</span><span class="value">60</span><span class="value muted">—</span></div>
+              <div class="sets-action"><span>+ Set</span><span>− Set</span></div>
+            </div>
+            <div class="card"><h3>Dumbbell Bicep Curls <span class="guide">?</span></h3><span class="chip">3 × 10–12 reps</span><p class="muted">Biceps</p></div>
+          </div>
+          <div class="timer"><span class="timer-label">Rest</span><strong class="timer-time">1:24</strong><button class="timer-button" type="button">+15s</button><button class="timer-button" type="button">Skip</button></div>
+          <div class="footer"><span>← Back</span><span class="finish">Finish workout (1 sets)</span></div>
+        </div>
+      </section>
+    </div>
+    <p class="caption">Illustration only: the timer and keypad are not interactive. In the app, the timer would appear only while running.</p>
+  </main>
+</body>
+</html>

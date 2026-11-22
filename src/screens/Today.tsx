@@ -6,6 +6,7 @@ import { devolvedNow, initialMonsters, monsterXp, neglectDays, reconcile } from 
 import { STAR_EVERY } from '../pet'
 import { Icon } from '../components/Icon'
 import { Meters } from '../components/Meters'
+import { WorkoutDrafts } from '../components/WorkoutDrafts'
 import type { ScreenProps } from '../types'
 
 type Props = ScreenProps & {
@@ -113,6 +114,7 @@ export function Today({ data, setData, onAddMeal, onStartWorkout, onOpenMonsters
         />
       </section>
 
+      <WorkoutDrafts data={data} setData={setData} onResume={onStartWorkout} />
       <section className="card" aria-label="Workout and check-in">
         <div className="workout-heading">
           <h2>{status ? (date === today ? 'Today’s activity' : 'Activity') : 'Next workout'}</h2>
@@ -122,7 +124,7 @@ export function Today({ data, setData, onAddMeal, onStartWorkout, onOpenMonsters
             <h3 className="workout-plan-name">{next.name}</h3>
             <p className="muted small">{next.exercises.length} exercises</p>
             <button className="primary block" disabled={!validDate} onClick={() => onStartWorkout(next.id, date)}>
-              Start workout <span aria-hidden="true">→</span>
+              {data.workoutDrafts?.some((draft) => draft.day.id === next.id) ? 'Resume workout' : 'Start workout'} <span aria-hidden="true">→</span>
             </button>
           </>
         )}

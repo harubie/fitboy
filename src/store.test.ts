@@ -31,6 +31,16 @@ it('preserves deleted foods across storage reloads', () => {
   expect(loadData().savedFoods).toEqual(data.savedFoods)
 })
 
+it('preserves unfinished workout rows and the original plan across storage reloads', () => {
+  const data = defaultData()
+  const day = data.routine[0]
+  data.workoutDrafts = [{ day, date: '2026-01-01', rows: {
+    [day.exercises[0].id]: [{ weight: '62.5', reps: '8' }, { weight: '65', reps: '' }],
+  } }]
+  vi.stubGlobal('localStorage', { getItem: () => JSON.stringify(data) })
+  expect(loadData().workoutDrafts).toEqual(data.workoutDrafts)
+})
+
 it('reports an invalid library without dropping meal or workout history', () => {
   const data = { ...defaultData(), savedFoods: [{ serving: 0 }] }
   vi.stubGlobal('localStorage', { getItem: () => JSON.stringify(data) })

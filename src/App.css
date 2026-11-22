@@ -194,6 +194,14 @@ body {
   padding-bottom: calc(11rem + env(safe-area-inset-bottom));
 }
 
+.session-content.has-timer {
+  padding-top: calc(5rem + env(safe-area-inset-top));
+}
+
+.session-content.has-timer input {
+  scroll-margin-top: calc(5rem + env(safe-area-inset-top));
+}
+
 .guide-grab {
   width: 40px;
   height: 4px;
@@ -1319,6 +1327,18 @@ button.pet-screen {
   box-shadow: 0 6px 20px rgb(0 0 0 / 0.45);
 }
 
+.session-timer {
+  position: fixed;
+  top: max(0.75rem, env(safe-area-inset-top));
+  left: 0;
+  right: 0;
+  width: 100%;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  z-index: 5;
+}
+
 .timer-bar {
   position: relative;
   overflow: hidden;
@@ -1346,6 +1366,10 @@ button.pet-screen {
 .timer-label {
   position: relative;
   flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .timer-time {

@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { BottomActions } from '../components/BottomActions'
-import { displayDate, formatSets, isLogDate, lastExerciseLog, lastSets, uid } from '../logic'
+import { displayDate, formatSets, isLogDate, sharedExerciseLog, uid } from '../logic'
 import { LogDate } from '../components/LogDate'
 import { useLogDate } from '../useLogDate'
-import type { Exercise, ScreenProps, WorkoutDay } from '../types'
+import type { Exercise, ScreenProps, WorkoutDay, WorkoutDraft } from '../types'
 
-type Row = { weight: string; reps: string; prevReps?: number }
+type Row = WorkoutDraft['rows'][string][number]
 type Timer = {
   kind: 'rest' | 'hold' | 'cardio'
   exId: string
@@ -33,13 +33,15 @@ export function SessionScreen({
   initialDate,
   onSavedDate,
 }: ScreenProps & { day: WorkoutDay; onDone: () => void; onGuide: (exercise: Exercise) => void; initialDate?: string; onSavedDate?: (date: string) => void }) {
-  const { date, setDate, today, validDate } = useLogDate(initialDate)
+  const draft = data.workoutDrafts?.find((item) => item.day.id === day.id)
+  const finished = useRef(false)
+  const { date, setDate, today, validDate } = useLogDate(draft?.date ?? initialDate)
   const unit = data.settings.unit
   // Weight is prefilled from last time; reps must be entered for a set to count.
   const [rows, setRows] = useState<Record<string, Row[]>>(() =>
-    Object.fromEntries(
+    draft?.rows ?? Object.fromEntries(
       day.exercises.map((ex) => {
-        const last = lastSets(data.sessions, ex.id) ?? []
+        const last = sharedExerciseLog(data.sessions, ex, data.routine)?.sets ?? []
         const count = Math.max(ex.sets, last.length, 1)
         return [
           ex.id,
@@ -52,6 +54,17 @@ export function SessionScreen({
       }),
     ),
   )
+
+  useEffect(() => {
+    if (finished.current) return
+    setData((current) => ({
+      ...current,
+      workoutDrafts: [
+        ...(current.workoutDrafts ?? []).filter((item) => item.day.id !== day.id),
+        { day, date, rows },
+      ],
+    }))
+  }, [day, date, rows, setData])
 
   const update = (exId: string, i: number, patch: Partial<Row>) =>
     setRows((r) => ({
@@ -127,6 +140,7 @@ export function SessionScreen({
 
   const save = () => {
     if (!isLogDate(date)) { alert('Choose a valid workout date on or before today.'); return }
+    finished.current = true
     setData((d) => ({
       ...d,
       sessions: [
@@ -137,8 +151,10 @@ export function SessionScreen({
           dayId: day.id,
           dayName: day.name,
           entries,
+          sharedExerciseHistory: true,
         },
       ],
+      workoutDrafts: (d.workoutDrafts ?? []).filter((item) => item.day.id !== day.id),
     }))
     onSavedDate?.(date)
     onDone()
@@ -146,7 +162,33 @@ export function SessionScreen({
 
   return (
     <div className="app">
-      <main className="content session-content">
+      {timer && (
+        <div className="session-timer">
+          <div className={`timer-bar ${timer.kind}`} role="timer" aria-live="polite">
+            <div className="timer-fill" style={{ width: `${(remaining / timer.total) * 100}%` }} />
+            <span className="timer-label">{timer.label}</span>
+            <strong className="timer-time">{clock(remaining)}</strong>
+            {timer.kind === 'rest' && (
+              <button
+                className="secondary small-btn"
+                onClick={() =>
+                  setTimer({
+                    ...timer,
+                    endsAt: timer.endsAt + 15000,
+                    total: timer.total + 15,
+                  })
+                }
+              >
+                +15s
+              </button>
+            )}
+            <button className="secondary small-btn" onClick={() => setTimer(undefined)}>
+              {timer.kind === 'rest' ? 'Skip' : 'Stop'}
+            </button>
+          </div>
+        </div>
+      )}
+      <main className={`content session-content${timer ? ' has-timer' : ''}`}>
         <header className="page-header">
           <h1>{day.name}</h1>
         </header>
@@ -165,7 +207,7 @@ export function SessionScreen({
         )}
 
         {day.exercises.map((ex) => {
-          const last = lastExerciseLog(data.sessions, ex.id)
+          const last = sharedExerciseLog(data.sessions, ex, data.routine)
           return (
             <section key={ex.id} className="card">
               <div className="row spread">
@@ -195,11 +237,12 @@ export function SessionScreen({
                 </p>
               )}
               {last ? (
-                <section className="last-session" aria-label={`${ex.name} last session`}>
+                <section className="last-session" aria-label={`${ex.name} ${last.heaviest ? 'heaviest saved session' : 'last session'}`}>
                   <div className="last-session-heading">
-                    <h3>Last session</h3>
+                    <h3>{last.heaviest ? 'Heaviest saved session' : 'Last session'}</h3>
                     <time className="muted small" dateTime={last.date}>{displayDate(last.date)}</time>
                   </div>
+                  <p className="muted small">{last.dayName}</p>
                   <ol className="last-session-sets">
                     {last.sets.map((set, i) => {
                       const text = `${formatSets([set], unit, ex.timed, ex.measurement)}${!ex.timed && !ex.measurement ? ' reps' : ''}`
@@ -284,30 +327,6 @@ export function SessionScreen({
         })}
       </main>
       <footer className="screen-footer">
-        {timer && (
-          <div className={`timer-bar ${timer.kind}`} role="timer" aria-live="polite">
-            <div className="timer-fill" style={{ width: `${(remaining / timer.total) * 100}%` }} />
-            <span className="timer-label">{timer.label}</span>
-            <strong className="timer-time">{clock(remaining)}</strong>
-            {timer.kind === 'rest' && (
-              <button
-                className="secondary small-btn"
-                onClick={() =>
-                  setTimer({
-                    ...timer,
-                    endsAt: timer.endsAt + 15000,
-                    total: timer.total + 15,
-                  })
-                }
-              >
-                +15s
-              </button>
-            )}
-            <button className="secondary small-btn" onClick={() => setTimer(undefined)}>
-              {timer.kind === 'rest' ? 'Skip' : 'Stop'}
-            </button>
-          </div>
-        )}
         <BottomActions onBack={onDone}>
           <button className="primary" disabled={setCount === 0 || !validDate} onClick={save}>
             {setCount === 0 ? 'Enter reps, time or distance to log sets' : `Finish workout (${setCount} sets)`}

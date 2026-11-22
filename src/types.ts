@@ -42,6 +42,12 @@ export type WorkoutDay = {
   note?: string
 }
 
+export type WorkoutDraft = {
+  day: WorkoutDay
+  date: string
+  rows: Record<string, { weight: string; reps: string; prevReps?: number }[]>
+}
+
 export type SetLog = { weight: number; reps: number } // reps stores the exercise's reps, seconds, minutes or metres
 
 export type SessionEntry = {
@@ -58,6 +64,7 @@ export type Session = {
   dayId: string
   dayName: string
   entries: SessionEntry[]
+  sharedExerciseHistory?: boolean
 }
 
 export type CheckIn = 'workout' | 'rest'
@@ -82,6 +89,7 @@ export type AppData = {
   savedFoods?: SavedFood[]
   routine: WorkoutDay[]
   sessions: Session[]
+  workoutDrafts?: WorkoutDraft[]
   checkIns: Record<string, CheckIn>
   monsters?: Monsters
 }
